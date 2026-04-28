@@ -1,0 +1,10 @@
+{
+  "vimMode": true,
+  "spellcheck": true,
+  "showLineNumber": true,
+  "alwaysUpdateLinks": true,
+  "readableLineLength": false,
+  "strictLineBreaks": false,
+  "smartIndentList": false,
+  "useTab": false
+}
