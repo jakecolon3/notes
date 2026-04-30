@@ -36,3 +36,93 @@ Quindi in media il costo di ricerca è costante, ma nel caso peggiore è in $\Th
 Il costo di inserimento è sempre costante
 Il costo di cancellazione è relativo al costo di rimozione delle liste puntate/doppiamente puntate
 
+### Indirizzamento aperto
+Sono usate nei dizionari di Python
+Le liste di trabocco allocano nuova memoria per ogni dato duplicato, ma se la tabella è dimensionata bene allora ogni elemento entrerà nella tabella, che abbiamo già allocato
+    Inoltre se dobbiamo accedere a memoria secondaria il costo computazionale aumenta di molto
+Quindi invece di usare liste in ogni posizione dell'array si calcolano le posizioni da controllare
+Per questo si usa una *funzione hash a 2 parametri*: il primo parametro è la chiave e, se si genera una collisione, si aumenta il secondo parametro
+    Il processo si ripete fino a che non si trova uno spazio libero
+
+Un problema ovvio è che potrebbe succedere che non si trova uno spazio libero fino a che non si è iterato tutto l'array, quindi nel caso peggiore il costo è $O(n)$. Nel caso medio il costo è $1/(1-\alpha)$ (dove $\alpha$ è il fattore di carico; generalmente è vicino a 1)
+**Operazioni**:
+- Ricerca
+    Nel caso peggiore (l'elemento non è presente) il costo è in $O(n)$; nel caso medio $\Theta(1/1-\alpha)$
+    Se l'elemento è presente il costo è $\frac{1}{\alpha}\ln\frac{1}{1-\alpha}+\frac{1}{\alpha}$
+        Il costo medio è indipendente dal numero di elementi nella tabella
+- Cancellazione
+    Non si può semplicemente cancellare un elemento: la ricerca di un oggetto si ferma quando trova uno spazio vuoto, ma potrebbero esserci altri elementi con valori del secondo parametro della funzione hash più grande
+    Bisogna quindi usare un valore speciale per indicare che un elemento è stato cancellato
+        Così facendo però l'elenco di posizioni di un certo hash cresce sempre di più
+        mi sono perso la soluzione
+Tutte le operazioni hanno costo nel caso peggiore di $O(n)$
+    Quindi nel caso peggiore creare un nuovo dizionario a partire di un array si ha costo di $\sum_{i=1}^{n}O(i)=O(n^2)$
+
+#### Hashing doppio
+Invece di usare una funzione hash a due parametri, si possono usare 2 funzioni hash
+    Guarda slide per esempio
+È favorevole perché è molto improbabile che 2 elementi generino collisioni su 2 funzioni hash
+
+# Alberi binari di ricerca
+Un ABR è un albero in cui vengono mantenute le seguenti proprietà:
+- Ogni nodo contiene una chiave
+- Il valore di ogni nodo è maggiore del valore del figlio sinistro
+- Il valore di ogni nodo è minore del valore del figlio destro
+Una proprietà di questa struttura è che "proiettando" le foglie orizzontalmente si ottiene un array ordinato
+    Per creare questo elenco ordinato basta eseguire una visita in-ordine
+Questo permette di effettuare ricerche l'algoritmo di ricerca binaria
+    La radice è il centro dell'array
+Sono memorizzati con record e puntatori con inoltre un puntatore al padre
+
+## Operazioni
+- `Search(T, k)`
+    Restituisce un puntatore all'elemento con chiave `k` in `T`
+- `Min(T), Max(T)`
+    Basta percorrere l'albero andando sempre a destra o sempre a sinistra
+    I risultati non sono necessariamente foglie: potrebbero avere figli destri/sinistri
+    Costo: $O(h)$
+        $h$ non è $\log(n)$ perché non è un albero completo o quasi completo
+        $h = \begin{cases} \Omega(\log n) \\ \Theta(n) \end{cases}$
+- `Predecessor(T, p), Successor(T, p)`
+    Restituisce un puntatore all'elemento in `T` che sarebbe prima/dopo la chiave di `*p`
+- `Insert(T, k)`
+- `Delete(T, p)`
+
+### Ricerca
+Simile alla ricerca binaria:
+```python
+def ABR_searchRec(p, k):
+    if p is None or p.key = k:
+        return ;
+    if k < p.key: return ABR_searchRec(p.left, k)
+    else return ABR_searchRec(p.right, k)
+```
+Costo: $\begin{cases} T(h) = T(h-1) + \Theta(1) \\ T(1) = \Theta(1) \end{cases}$
+    Nel caso peggiore sarà $O(n)$ ma nel caso medio è $O(\log n)$
+
+### Inserimento
+```python
+
+def ABR_insert(p, k):
+    '''
+    :param p: puntatore all'albero
+    :param k: chiave da inserire
+    '''
+    y, x = None, p
+    z = NodoABR(k)
+    while x is not None:
+        y = x
+        if z.key < x.key:
+            x = x.left
+        else:
+            x = x.right
+    if y is None:
+        p = z
+    else:
+        if x.key < y.key:
+            y.left = z
+        else:
+            y.right = z
+    z.parent = y
+    return p
+```
