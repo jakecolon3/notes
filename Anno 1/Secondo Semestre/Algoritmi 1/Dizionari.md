@@ -70,7 +70,7 @@ Un ABR è un albero in cui vengono mantenute le seguenti proprietà:
 - Il valore di ogni nodo è minore del valore del figlio destro
 Una proprietà di questa struttura è che "proiettando" le foglie orizzontalmente si ottiene un array ordinato
     Per creare questo elenco ordinato basta eseguire una visita in-ordine
-Questo permette di effettuare ricerche l'algoritmo di ricerca binaria
+Questo permette di effettuare ricerche usando l'algoritmo di ricerca binaria
     La radice è il centro dell'array
 Sono memorizzati con record e puntatori con inoltre un puntatore al padre
 
@@ -124,5 +124,76 @@ def ABR_insert(p, k):
         else:
             y.right = z
     z.parent = y
+    return p
+```
+
+# Alberi AVL
+Abbiamo visto che il problema degli ABR è che non è garantito che l'altezza sia bilanciata
+    Hanno operazioni in $O(h)$ ma $h$ potrebbe essere uguale a $n$
+Gli alberi AVL sono ABR bilanciati tramite delle tecniche di bilanciamento, quindi risolvono questo problema mantenendo le proprietà degli ABR
+    Le tecniche di bilanciamento sono basate sull'idea di riorganizzare l'albero dopo ogni inserimento o eliminazione
+Lo scopo è mantenere il costo delle operazioni in $O(h)$, ma garantendo $h = O(\log n)$
+
+## Bilanciamento
+Il metodo che vedremo si basa sul controllare che, per ciascun nodo dell'albero, la differenza di altezza dei suoi sottoalberi non sia troppo "differente"
+
+### Fattore di bilanciamento
+In un albero binario, il *fattore di bilanciamento* (fdb) è definito come la differenza tra l'altezza del suo sottoalbero destro e l'altezza del sottoalbero destro: `fdb = node.left.height - node.right.height`
+
+## Definzione
+**Un albero AVL è un albero binario di ricerca in cui *il fdb di ogni nodo è compreso tra -1 e 1***
+Vedremo che questa condizione basta per garantire $h = O(\log n)$, cioè:
+Teorema: **Gli alberi AVL sono bilanciati.**
+
+### Dimostrazione
+Sia $N(h)$ il *numero minimo di nodi che può avere un albero AVL di altezza $h$.*
+    Vediamo alcuni $N(h)$: (guarda slide per disegni)
+    $N(1) = 1$
+    $N(2) = 2$
+Per $h \geq 2$, i due sottoalberi della radice dell'albero di altezza $h$ con il numero minimo di nodi non possono avere la stessa altezza, altrimenti si potrebbe ridurre il numero di nodif
+Quindi (ecc.)
+Possiamo esprimere $N(h)$ in modo ricorsivo:
+$$
+\begin{gather}
+    N(h) = N(h-1) + N(h-2) + 1 \text{ per } h \geq 2 \\
+    N(1) = 1 \\
+    N(2) = 2
+\end{gather}
+$$
+Risolvendo come un eq. di ricorrenza ottineniamo $N(h) = 2^{h/2 + 1} - 1$
+Poiché $n \geq N(h)$:
+    $\log(n+1) \geq \frac{h}{2} + 1$
+    $h \leq 2\log(n+1) - 2 \Rightarrow h = O(\log n)$ per tutti gli AVL. (CVD)
+
+
+Questo teorema garantisce che le operazioni di ricerca sugli AVL hanno costo logaritmico, ma questo non è vero per inserimento e rimozione come definiti per gli ABL
+Infatti dopo una modifica sull'albero si potrebbe perdere la condizione di bilanciamento; bisogna quindi ribilanciare l'albero dopo ogni modifica
+
+## Rotazioni
+Per risolvere questo problema dobbiamo introdurre le rotazioni
+Le rotazioni permettono di ripristinare la forma di AVL dopo le modifiche in tempo logaritmico
+Possono essere destre o sinistre
+    Guarda slide per disegno
+Le rotazioni hanno costo costante: si modificano sempre solo 6 puntatori
+```python
+def AVL_rotazione_sinistra(p, a):
+    '''
+    :param p:  puntatore alla radice dell'albero
+    :param a:  puntatore al nodo su cui si ruota
+    '''
+    b = a.right
+    a.right = b.left
+    if a.right is not None:
+        a.right.parent = a
+    b.left = a
+    b.parent = a.parent
+    if a.parent is None:
+        p = b
+    else:   # se a è un sottoalbero
+        if a == a.parent.left:
+            a.parent.left = b
+        else:
+            a.parent.right = b
+    a.parent = b
     return p
 ```
