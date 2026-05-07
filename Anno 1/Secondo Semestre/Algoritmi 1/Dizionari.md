@@ -143,14 +143,14 @@ In un albero binario, il *fattore di bilanciamento* (fdb) è definito come la di
 ## Definzione
 **Un albero AVL è un albero binario di ricerca in cui *il fdb di ogni nodo è compreso tra -1 e 1***
 Vedremo che questa condizione basta per garantire $h = O(\log n)$, cioè:
-Teorema: **Gli alberi AVL sono bilanciati.**
 
+Teorema: **Gli alberi AVL sono bilanciati.**
 ### Dimostrazione
 Sia $N(h)$ il *numero minimo di nodi che può avere un albero AVL di altezza $h$.*
     Vediamo alcuni $N(h)$: (guarda slide per disegni)
     $N(1) = 1$
     $N(2) = 2$
-Per $h \geq 2$, i due sottoalberi della radice dell'albero di altezza $h$ con il numero minimo di nodi non possono avere la stessa altezza, altrimenti si potrebbe ridurre il numero di nodif
+Per $h \geq 2$, i due sottoalberi della radice dell'albero di altezza $h$ con il numero minimo di nodi non possono avere la stessa altezza, altrimenti si potrebbe ridurre il numero di nodi
 Quindi (ecc.)
 Possiamo esprimere $N(h)$ in modo ricorsivo:
 $$
@@ -197,3 +197,33 @@ def AVL_rotazione_sinistra(p, a):
     a.parent = b
     return p
 ```
+**Osservazione**: le visite in-ordine non cambiano dopo una rotazione.
+
+## Operazioni
+### Inserimento
+Dato che gli AVL sono ABR, il primo passo è inserire come in un ABR
+Poi mentre si risale si ribilancia l'albero
+    Solo sul cammino tra radice e nodo modificato, gli altri nodi non possono essere stati modificati
+    Quindi il numero di nodi disturbati è massimo $h$ quindi logaritmico
+
+Quindi per ribilanciare:
+- Si cerca il nodo più profondo che è stato sbilanciato
+- Si esegue una rotazione su quel nodo
+    Possibilmente 3 rotazioni
+    Guarda slide per spiegazione
+
+In totale il costo sarà:
+- Inserimento: $O(h) = \log n$
+- Calcolo fdb: $O(h)$
+- Ribilanciamento: $O(1)$
+Quindi in totale $O(\log n)$.
+
+### Cancellazione
+Quasi stesso procedimento dell'inserimento:
+- Cancella come in ABR
+- Ricalcola fdb
+- Ribilancia se si è sbilanciato
+- Propagazione del ribilanciamento
+    Lo sbilanciamento potrebbe propagarsi quindi bisogna ribilanciare più volte
+    Il sottoalbero potrebbe diventare più corto dopo il ribilanciamento e quindi sbilanciare un albero più in alto
+Il costo totale rimane $O(\log n)$
