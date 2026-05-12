@@ -149,6 +149,28 @@ public boolean equals(Object o) {
     ...
 ```
 
+### Sovrascrivere `hashCode()`
+Oltre che `equals()`, bisogna sovrascrivere anche `hashCode()` quando si crea una nuova classe
+Si ha:
+```java
+assert a.equals(b) && (a.hashCode() == b.hashCode())
+assert (a.hashCode() == b.hashCode()) && !a.equals(b)
+```
+In genere per generare un hash si usano gli hash dei campi della classe moltiplicati per un numero primo e sommati
+```java
+public class Persona {
+    String nome;
+    String cognome;
+    ...
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = result * prime + (cognome == null ? 0 : cognome.hashCode());
+        result = result * prime + (nome    == null ? 0 : nome   .hashCode());
+        return result;
+```
+
 # Classi e metodi `final`
 È possibile definire metodi e classi che non possono essere sovrascritti o estesi usando la keyword `final`:
 ```java

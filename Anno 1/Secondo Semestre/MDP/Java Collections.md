@@ -56,3 +56,13 @@ Implementazioni:
 - `LinkedHashMap`
 Come i Set ma ci si può accedere tramite chiavi
 Si possono ottenere l'insieme delle chiavi (`.keySet()`), l'elenco dei valori (`.values()`) e l'insieme delle coppie chiave-valore (`.entrySet()`)
+
+## Metodi utili
+- `forEach(BiConsumer)`
+    Itera su ciascuna coppia
+- `getOrDefault(chiave, valoreDefault)`
+    Restituisce il valore associato alla chiave o il valore di default se non è presente
+- `merge(chiave, valore, BiFunction)`
+    Se la chiave non ha valore gli assegna il valore, altrimenti usa la funzione fornita per fondere i due valori
+- `of(chiave, valore, chiave, valore...)`
+    Metodo statico, crea una mappa immutabile con i valori corrispondenti

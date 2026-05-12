@@ -60,7 +60,7 @@ public class Iterator<E> {
 
 L'interfaccia `Iterable` è ciò che permette il funzionamento dei loop `for-each`: qualsiasi classe che la implementa può essere usata in un loop for-each
 
-## Comparable
+## Comparable<T>
 Dichara un metodo che torna un valore maggiore, minore o uguale a zero, a seconda della relazione tra l'oggetto chiamante e l'oggetto fornito come argomento:
 ```java
 public interface Comparable {
@@ -83,6 +83,9 @@ public interface Serializable {
     ...
 }
 ```
+
+## Comparator<T>
+
 
 # Interfacce funzionali
 Da Java 8 esiste un tipo di interfaccia detta *funzionale*, o SAM (Single Abstract Method)
