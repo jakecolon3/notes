@@ -41,7 +41,7 @@ Una classe può però implementare *un numero qualsiasi di interfacce*
 # Interfacce built-in
 Java fornisce delle interfacce di default per implementare alcuni tipi di dati
 
-## Iterable
+## `Iterable`
 Dichiara un solo metodo `iterator()`:
 ```java
 public interface Iterable {
@@ -49,7 +49,7 @@ public interface Iterable {
 }
 ```
 Questo metodo ritorna un tipo *generico*: è un tipo "contenitore" di altri tipi (come un array):
-### Iterator
+### `Iterator`
 ```java
 public class Iterator<E> {
     boolean hasNext();
@@ -60,7 +60,7 @@ public class Iterator<E> {
 
 L'interfaccia `Iterable` è ciò che permette il funzionamento dei loop `for-each`: qualsiasi classe che la implementa può essere usata in un loop for-each
 
-## Comparable<T>
+## `Comparable<T>`
 Dichara un metodo che torna un valore maggiore, minore o uguale a zero, a seconda della relazione tra l'oggetto chiamante e l'oggetto fornito come argomento:
 ```java
 public interface Comparable {
@@ -68,7 +68,7 @@ public interface Comparable {
 }
 ```
 
-## Cloneable
+## `Cloneable`
 Permette l'utilizzo del metodo `clone`:
 ```java
 public interface Cloneable {
@@ -76,16 +76,13 @@ public interface Cloneable {
 }
 ```
 
-## Serializable
+## `Serializable`
 Permette la serializzazione:
 ```java
 public interface Serializable {
     ...
 }
 ```
-
-## Comparator<T>
-
 
 # Interfacce funzionali
 Da Java 8 esiste un tipo di interfaccia detta *funzionale*, o SAM (Single Abstract Method)
@@ -100,6 +97,39 @@ public interface Interfaccia {
     ...
 }
 ```
+## Interfacce funzionali di default
+### `Comparator<T>`
+Fornisce un metodo `compare(a, b)` che torna un intero tra -1 e 1 inclusi per determinare l'ordine relativo degli oggetti
+Fornisce anche alcuni metodi di default:
+- `reversed()`
+    Inverte l'ordinamento
+    Utilizzo: `myComparator.reversed().compare(...)`
+- `comparing(obj -> obj.getField())`
+    Basa l'ordinamento sul campo specificato
+- `thenComparing(obj -> obj.getField())`
+    Può essere usato dopo `comparing()` per definire l'ordinamento in caso di uguaglianza
+
+### `Predicate<T>`
+Fornisce un metodo `test(a)` che torna un booleano
+Metodi di default:
+- `negate()`
+- `and(Predicate)`
+    Aggiunge un'altro check al test
+- `or(Predicate)`
+- ecc. guarda doc
+
+### `Function<T,R>`
+Fornisce un metodo `apply(T a)` che torna un oggetto di tipo `R`
+Ha anche metodi di default
+
+### `Supplier<T>`
+Fornisce un metodo `get()` che torna un oggetto di tipo `T`
+    Se usate con un costruttore non si possono passare parametri al costruttore
+
+### `Consumer<T>`
+Fornisce un metodo `accept(T a)` che prende un argomento ma non ritorna niente
+Funziona a "side-effect"
+
 ## Utilità
 Immaginiamo di avere un metodo `calcola` definito come segue:
 ```java
@@ -175,3 +205,16 @@ Quindi queste espressioni sono tutte equivalenti:
 s -> s.replace(' ', '_');
 ```
 
+### Riferimenti a metodi esistenti
+Se abbiamo una funzione lambda che si riferisce solamente ad un metodo già esistente, si può invece usare *un riferimento* a quel metodo:
+```java
+(x, s) -> { return x.equals(s); }
+// altrimenti:
+String::equals;
+```
+Il compilatore può inferire automaticamente l'oggetto su cui chiamare la funzione (il primo argomento passato alla chiamata) e gli argomenti (gli argomenti restanti)
+    Se il metodo è statico allora tutti gli argomenti sono passati al metodo
+In questo modo possiamo anche chiamare il costruttore di una classe:
+```java
+String::new
+```

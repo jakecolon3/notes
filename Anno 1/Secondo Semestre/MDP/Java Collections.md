@@ -66,3 +66,9 @@ Si possono ottenere l'insieme delle chiavi (`.keySet()`), l'elenco dei valori (`
     Se la chiave non ha valore gli assegna il valore, altrimenti usa la funzione fornita per fondere i due valori
 - `of(chiave, valore, chiave, valore...)`
     Metodo statico, crea una mappa immutabile con i valori corrispondenti
+`java.util.Collections` fornisce anche alcuni metodi statici:
+- `sort`
+- `binarySearch`
+- `fill`
+- `copy`
+- ecc.
