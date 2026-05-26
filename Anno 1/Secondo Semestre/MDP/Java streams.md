@@ -12,12 +12,20 @@ In genere gli stream sono creati a partire da una [[Java Collections|collection]
 - `Stream<E> Stream.iterate(E startValue, Predicate<E>, NextFunc<E>)`
     Come sopra ma specifica anche una condizione di terminazione
 
+# Riutilizzare stream
+Abbiamo visto che gli stream sono utilizzabili solo una volta
+Possiamo però creare un oggetto o un metodo che genera stream di una certa collection
+    Per esempio con un `Supplier<>`
+
 # Operare su stream
 Le operazioni su stream sono divise in operazioni *intermedie* e operazioni *terminali*
 Ci sono anche stream "lazy" che raccolgono le operazioni intermedie effettuate su di essi e le eseguono tutte quando si effettua un operazione terminale, chiudendo lo stream
 
 ## Ordine di operazioni
 L'ordine delle operazioni su uno stream è importante: vengono eseguite nell'ordine in cui sono chiamate sullo stream
+
+### Metodi 'stateful'/'stateless'
+Alcuni metodi hanno bisogno di informazioni sullo stato dello stream (per esempio `sorted`)
 
 ### Operazioni intermedie
 - `distinct()`
@@ -73,4 +81,15 @@ Assume che ogni elemento dello stream è un intero
 ### Metodi
 - `IntStreamStatistics summaryStatistics()`
     Metodo terminale che torna un oggetto contenente informazioni sugli elementi dello stream
-    `max, min, average...`
+- `max, min, average...`
+    Terminali
+
+# Parallelismo
+Gli stream sono ottimizzati per le [[Java multithreading|operazioni in parallelo]]
+C'è una classe `ParallelStream` che gestisce le operazioni su di essa in parallelo
+    Lo fa automaticamente
+
+## Operazioni parallelizzabili
+Non tutte le operazioni possono essere eseguite in parallelo
+    Se un operazione ha bisogno dell'output di un operazione precedente non può essere parallelizzata
+Quindi solo le operazioni stateless sono parallelizzabili
