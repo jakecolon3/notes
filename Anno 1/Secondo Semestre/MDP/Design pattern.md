@@ -58,5 +58,61 @@ Si definisce diverse classi `Decorator` che aggiungono qualcosa all'oggetto
     Per esempio se ci sono 2 oggetti che differiscono solo per il valore di un campo si può definire un decorator il cui getter aggiunge un valore fisso al return del campo
 In questo modo si possono annidare diversi decorator per avere oggetti sempre più specifici
 
+## Model-View-Controller
+    Per il progetto: crea 3 pacchetti per model/view/controller
+Lo scopo è il più possibile dividere i comportamenti tra le classi
+Prevede 3 elementi:
+- Model
+Gestisce la logica
+- View
+Si occupa della visualizzazione del model e dell'input
+- Controller
+Processa gli input e li manda al model/view
+
+Il model deve essere completamente separato da view e controller
+Spesso il controller necessita un minimo di dipendenza con la view
+
 # Behavioural patterns
 Questi pattern riguardano le interazioni e le responsabilità tra gli oggetti
+
+## Observer pattern
+Questo pattern aiuta la gestione di eventi asincroni (eg. premere un tasto di un interfaccia)
+Questo pattern consiste nel definire un oggetto 'osservato' e degli oggetti 'osservatori'
+Quando l'oggetto osservato cambia di stato, tutti gli oggetti osservatori ricevono una notifica e possono reagire
+
+### In pratica
+Si definisce una classe `Observable` ed un interfaccia `Observer`
+    Presenti in `java.util` ma deprecati
+    L'alternativa è `java.util.ReactiveStream` ma è più complicato
+La classe `Observable` continene delle reference a tutti gli oggetti sottoscritti ad esso, e chiama in metodo `update()` dell'interfaccia `Observer` quando una condizione è verificata
+    `Observable` ha un metodo per aggiungere osservatori
+    `Observable` ha 2 metodi per gestire i cambiamenti: `setChanged()` e `notifyObservers()`
+        Questi metodi vanno chiamati rispettivamenti ogni volta che cambia un campo e ogni volta che si vuole mandare una notifica agli iscritti
+
+### Reactive Stream
+Definita nel pacchetto `java.concurrent.Flow`
+Definisce un sistema `Publisher`/`Subscriber` che è in grado di gestire le informazioni in modo asincrono
+I `Subscriber` inviano quanti dati sono in grado di gestire al `Publisher`
+`Publisher`:
+- Per aggiungere osservatori si usa `subscribe()`
+- Ha un metodo `close()`
+    Indica che non saranno mandati ulteriori dati
+- Per mandare la notifica si usa `submit()`
+`Subscriber`:
+- Ha un campo `subscription`
+    Contiene una reference astratta ai publisher
+    `subscription` ha un metodo `request(int)` che indica quanti dati può ricevere il subscriber
+- Ha un metodo `onSubscribe(Flow.Subscription)`
+    Chiamato quando l'oggetto si iscrive
+- Ha un metodo `onNext(arg)`
+    Chiamato ogni volta che il publisher cambia stato
+        Ricorda di chiamare `request()` dopo per essere pronti a ricevere altri dati
+- `onError()`
+- `onComplete()`
+
+Potrebbe essere necessario processare i dati prima di mandarli agli iscritti, e per questo la libreria fornisce la classe `Processor`
+Si mette in mezzo tra il publisher ed i subscriber
+    Si iscrive al publisher e i subscriber si iscrivono ad esso
+- `onComplete()`
+    Chiamato quando il publisher chiama `close()`
+    Qua deve chiamare `close()` per noticare gli iscritti
