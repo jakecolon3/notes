@@ -27,7 +27,7 @@ Si può aggiungere il prefisso `0` per definire un intero dalla sua rappresentaz
 	Accettano anche valori interi, interpretati come codici ASCII
 
 # Tipi di dati "non-primitivi"
-- [[Java stringhe|Stringhe]]
+- Java-stringhe|Stringhe 
 - Liste
 - Classi
 Detti "tipi di riferimento" perché si riferiscono a *oggetti*

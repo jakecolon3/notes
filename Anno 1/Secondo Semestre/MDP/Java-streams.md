@@ -4,7 +4,7 @@ Inoltre sono molto efficienti quando usati con la parallelizzazione
 Gli stream hanno uso singolo
 
 # Creare stream
-In genere gli stream sono creati a partire da una [[Java Collections|collection]] tramite il metodo `Stream<E> stream()`
+In genere gli stream sono creati a partire da una [[Java-Collections.md|collection]] tramite il metodo `Stream<E> stream()`
 
 ## Metodi statici
 - `Stream<E> Stream.iterate(E startValue, NextFunc<E>)`
@@ -42,7 +42,7 @@ Alcuni metodi hanno bisogno di informazioni sullo stato dello stream (per esempi
 
 ### Operazioni terminali
 - `collect(Collector)`
-    Vedi [[Java streams#Collectors|collectors]]
+    Vedi Java-streams#Collectors|collectors 
 - `reduce(E identityValue, BiFunction<E, E, E>)`
     Riduce lo stream ad 1 elemento in base alla funzione fornita
 - `boolean anyMatch(Predicate<E>)`
@@ -85,7 +85,7 @@ Assume che ogni elemento dello stream è un intero
     Terminali
 
 # Parallelismo
-Gli stream sono ottimizzati per le [[Java multithreading|operazioni in parallelo]]
+Gli stream sono ottimizzati per le Java-multithreading|operazioni in parallelo 
 C'è una classe `ParallelStream` che gestisce le operazioni su di essa in parallelo
     Lo fa automaticamente
 

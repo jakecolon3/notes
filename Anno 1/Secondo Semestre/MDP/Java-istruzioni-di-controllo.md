@@ -118,7 +118,7 @@ for (int i = 0; i < 10; ++i) {
 ```
 
 ### For-each
-Esistono anche i loop for-each, che iterano su gli [[Java vettori|array]]:
+Esistono anche i loop for-each, che iterano su gli Java-vettori|array :
 ```java
 for (var variabile : lista) {
     codice;

@@ -18,10 +18,10 @@ Questo codice fa un paio di cose:
 - Crea una classe `Main`
     In Java ogni linea di codice *deve* essere inserita in una classe
     Il nome del file che contiene il codice deve essere identico al nome della classe: in questo caso il file è `Main.java` (case sensitive)
-        [[Java style guide|In genere]] le classi hanno nomi che iniziano con la maiuscola
-- Crea il [[Java metodi|metodo]] `main()`, *necessario* per ogni programma, che ha come parametro un array di stringhe `args` (input dal terminale)
+        [[Java-style-guide.md|In genere]] le classi hanno nomi che iniziano con la maiuscola
+- Crea il [[Java-metodi.md|metodo]] `main()`, *necessario* per ogni programma, che ha come parametro un array di stringhe `args` (input dal terminale)
 - Esegue il metodo `println()` con l'argomento `"Hello World!"`
-    `System.out` è una [[Java classi|classe]] + sottoclasse default di Java
+    `System.out` è una [[Java-classi.md|classe]] + sottoclasse default di Java
     `println()` funziona come `print()` in Python: stampa l'argomento su una nuova linea
 
 # Sintassi
@@ -36,7 +36,7 @@ Per creare una variabile bisogna specificare il tipo di dato che essa conterrà:
 // Esempio:
 int variabile = 2; // 'variabile' è l'identificatore della variabile; '2' è il letterale della variabile
 ```
-### Alcuni [[Java tipi di dati|tipi di dati]]:
+### Alcuni [[Java-tipi-di-dati.md|tipi di dati]]:
 - String
     Usano virgolette *doppie*: ""
 - char
@@ -69,7 +69,7 @@ In genere per tipi semplici è meglio specificare la keyword, `var` si usa per t
     Esempio: `var myVar = new myClass();`
 `var` si può usare solo per variabili locali, non per campi o parametri
 
-## [[Java operatori|Operatore]] +
+## [[Java-operatori.md|Operatore]] +
 Come in Python, in Java si può usare l'operatore + per concatenare variabili:
 ```Java
 String stringa1 = "Hello ";

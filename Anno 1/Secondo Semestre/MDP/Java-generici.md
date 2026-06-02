@@ -1,4 +1,4 @@
-Abbiamo visto che alcune delle [[Java interfacce|interfacce]] di Java sono definite con parentesi angolari, per es.:
+Abbiamo visto che alcune delle [[Java_interfacce.md|interfacce]] di Java sono definite con parentesi angolari, per es.:
 ```java
 public interface List<E> { ... }
 ```
