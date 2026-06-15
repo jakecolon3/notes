@@ -26,7 +26,7 @@ L'operatore `in` in Python usa la ricerca sequenziale quando usato su tipi di da
 ### Ricerca binaria
 Funziona *solo* su sequenze ordinate (sorted)
 Guarda l'elemento centrale dell'array e se trova l'elemento ritorna, se non lo trova e l'elemento centrale è più piccolo scarta la metà superiore dell'array e ripete la ricerca nell'altra metà o il contrario se l'elemento centrale è più grande
-```
+```python
 def ricerca_binaria(A, v):
 	a,b = 0, len(A) - 1
 	m = (a+b)//2
