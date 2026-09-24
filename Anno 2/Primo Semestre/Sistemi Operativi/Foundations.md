@@ -253,3 +253,144 @@ CPU performance is usually measured in *clock speed*
 - IPC (Instructions Per Cycle)
 Formula to calculate execution time:
     CPU Time = Instruction Count \* CPI \* Clock Cycle Time
+
+# Memory Hierarchy
+
+There are different types of memory
+
+CPU speed has gotten a lot faster than DRAM speed, leading to a lot of wasted time waiting for memory writes. To mitigate this, memory is organized in a hierarchy:
+![Memory hierarchy](./images/memory-hierarchy.png)
+*The memory hierarchy.*
+
+At the top of the hierarchy, we have the fastest, but also smallest and most expensive memory. As we go towards the bottom, memory becomes cheaper, but larger and slower.
+
+## RAM
+
+There are 2 main types of RAM:
+- SRAM (Static)
+    Also called static ram, it's used in registers
+- DRAM (Dynamic)
+    "Normal" RAM
+
+### RAM organization
+
+Main memory is organized as a table where every RAM address represents exactly 1 byte of data (? word size?)
+
+**Principle of Locality**: in programs, these 2 properties very often hold true
+- *Temporal Locality*
+    If a memory address is accessed once, it's very likely to be accessed again soon
+- *Spatial Locality*
+    If a memory address is accessed, it's very likely that nearby memory will also be accessed soon
+These 2 principles are used by good CPU and OS architectures for optimization. A classic example is accessing arrays: when indexing an array, a chunk of the elements is loaded in the cache instead of only the requested one
+
+## Cache architecture
+
+The cache stores memory in blocks, called *cache lines*. Usually these are 64 bytes long. Each cache line entry contains:
+- Valid bit
+    Indicator to track whether the cached data is valid
+- Tag bit
+    Refers to the original address of the cached data
+- Data block
+    The data
+
+When the CPU requests data it first checks the cache, then DRAM, then physical storage. When it finds data in the cache, that's called a *cache hit*, and the access only takes 1-2 cycles. On a cache *miss*, the time to access data in DRAM is around 100 cycles slower.
+
+### Cache Coherency
+
+Since every core has its own cache, a core could hold outdated values in cache if a different core modifies some value.
+
+### Cache Write Policies
+
+There are 2 main ways to keep RAM and the cache synchronized:
+- Write-Though Policy
+    Write to DRAM every time you write to cache. Negates benefits of cache for writes
+- Write-Back Policy
+    Only the cache is written to, then it's marked as modified and written to RAM only when the cache line gets flushed
+
+### Cache Line Mapping Policies
+
+Memory gets mapped to a location in cache in one of 3 main schemes:
+- #### Direct Mapping
+
+Every memory block gets a single cache slot (a slot is the address of a cache line). This policy is prone to conflicts, resulting in different memory blocks constantly evicting each other from the cache slot.
+
+- #### Fully Associative
+
+Any block of memory can end up in any cache slot. Though this requires searching through the cache every time we look for a cache hit. For this reason, it's only used in systems with small caches.
+
+- #### Set Associative
+
+"Best of both worlds"
+
+The cache is divided in sets. Then each memory block is assigned one of these sets, data from that block can be put in any of the slots within the set. This is the most common policy in modern CPUs.
+
+# I/O
+
+A computer has to communicate with external devices to be useful, such as:
+- Storage devices
+- Network devices
+- Input devices
+- Sensors
+
+All of these devices fall under the category of I/O devices.
+
+## Controlling I/O Devices
+
+I/O devices are managed by 2 layers: hardware and software
+
+### Device Controller
+
+The hardware side, it's a chip on the device that exposes a set of control registers and commands to the cpu
+
+### Device Driver
+
+A piece of the OS that knows how to interact with the device controller. It provides a standardized interface to the rest of the OS for the same types of devices
+
+## Mapping Device Registers
+
+There are 2 ways to interact with a device controller's registers:
+1. Port-Mapped I/O
+    Dedicated CPU instructions with a separate address space for I/O devices
+2. Memory-Mapped I/O
+    Reserves a range of main memory addresses for I/O device registers to be mapped onto. This way the CPU can write to IO devices directly. This is the way mostmodern CPUs handle IO.
+
+### Device Registers
+
+A device controller typically has 3 types of registers:
+- Status register
+    Read-only, indicates the state of the device
+- Command register
+    Write-only, the controller listens for commands written to this register
+- Data register
+    Read-write, stores written/read data
+
+## CPU/IO device communication
+
+There are 3 main communication protocols:
+1. ### Programmed I/O, or polling
+
+This is the simplest method. It generally goes like this:
+- CPU sets the command on the command register
+- CPU continously reads the status register, waiting for it to change from "busy". This is known as "busy-looping".
+    Wastes cycles
+- Read the data from the data register once it's ready
+
+2. ### Interrupt-driven I/O
+
+To avoid busy-looping, devices can send signals to the CPU once they are ready.
+- CPU starts the operation
+- CPU continues execution
+- When the device is done, it'll send a signal on the *interrupt line*
+- When the CPU receives the signal, it interrupts what it was doing, executes some code (the *interrupt service routine*) to handle the signal, then resumes original execution
+    The problem with this system is that when a routine is interrupted, the CPU has to save the state of execution to then restore after handling the interrupt.
+
+![Interrupt-driven IO](./images/interrupt-io.png)
+*Diagram showing the flow of interrupt-driven IO*
+
+The code to be run when a signal is received is stored in the *interrupt vector table*, a table storing pointers to the functions that handle specific interrupt signals
+
+3. ### Direct memory access
+
+For high-volume data tranfers, both polling and interrupts are too slow. The solution is introducing a specialized component, the *Direct Memory Access controller*, to handle these operations.
+
+When a large read is completed, the CPU requests the DMA controller to move the data directly from the device to main memory. While the DMA controller is working, the CPU is free to continue normal execution. Then the controller sends a single interrupt when it finishes transferring.
