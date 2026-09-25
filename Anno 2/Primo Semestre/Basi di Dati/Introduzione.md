@@ -109,3 +109,54 @@ select Candidato from Esami where Materia = "BDSI1" and Voto = 30 -- interrogazi
 
 Per esempio, in un database di studenti, lo studente è una relazione con campi definiti da uno schema (nome, cognome, matricola...)
     Una relazione (o tabella) è un insieme di dati definiti in uno schema
+
+# Storia
+
+I primi database erano gerarchici; il principale modello di database gerarchico è il modello reticolare
+
+Negli anni '70 IBM introdusse il modello relazionale, ed è ancora lo standard oggi
+
+# Modello relazionale
+
+Nel modello relazionale, gli oggetti sono record: righe in una tabella. Ogni record ha una serie di campi che, **insieme**, rappresentano l'oggetto.
+
+# DDL
+
+È utile avere un linguaggio formale per definire le basi di dati
+
+Dobbiamo però prima distinguere i livelli di descrizione dei dati:
+- ### Livello fisico
+    Descrive come i dati sono organizzati fisicamente nella memoria. In genere è il DBMS che definisce lo schema fisico.
+- ### Livello logico
+    Descrive la struttura degli insiemi di dati e delle loro relazioni. Esempio:
+    ```sql
+    Studenti(Matricola char(8), Nome char(20), login char(8), AnnoNascita int, Reddito real)
+    Corsi(IdeC char(8), Titolo char(20), Credito int)
+    Esami(Matricola char(8), IdeC char(8), Voto int)
+    ```
+    Questo schema non basta però: non sono definite le *relazioni* tra gli schemi. Per esempio, non abbiamo definito che `Esami.Matricola == Studenti.Matricola`.
+- ### Livello di vista logica
+    Descrive come la struttura del database deve apparire alle diverse applicazioni
+
+Questo approccio a livelli garantisce l'indipendenza logica e fisica dei dati.
+
+### Linguaggi per l'uso dei dati
+
+Un DBMS deve fornire più modalità di accesso per i diversi tipi di utenti: interfaccia grafica, linguaggio di interrogazione, linguaggi di programmazione ecc.
+
+## Transazioni
+
+> Una transazione è una sequenza di azioni di lettura e scrittura in memoria permanente e di elaborazione di dati in memoria temporanea, con le seguenti proprietà:
+> - Atomiticità: se una transazione è iniziata deve terminare o essere ignorata in caso di errore
+> - Consistenza: non devono mai lasciare i dati in uno stato che violi i vincoli imposti
+> - Isolamento: in caso di transazioni concorrenti, il risultato di una transazione non deve dipendere dal risultato di un'altra
+> - Durabilità: le modifiche sul database da parte di una transazione sono permanenti, non alterabili da malfunzionamenti
+
+Esempio: transazione "Trasferisci €1000 dal c/c 1 al c/c 2"  
+Questa transazione è composta da queste operazioni:
+- Cerca c1
+- Modifica `saldo` di c1
+- Cerca c2
+- Modifica `saldo` di c2
+
+Problemi con concorrenza
