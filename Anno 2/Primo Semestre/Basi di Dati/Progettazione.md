@@ -102,3 +102,4 @@ Per modellare le associazioni usiamo un diagramma come questo:
 - No barra: totalità
 
 Le associazioni possono essere anche ricorsive o riflessive: una Persona può avere relazioni con altre Persone
+
