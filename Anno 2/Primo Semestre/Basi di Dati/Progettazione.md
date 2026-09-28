@@ -30,7 +30,7 @@ Ci sono due principali tipi di modelli:
 - Logici
     Indipendenti dalle strutture dati fisiche; sono i modelli dei DBMS
 - Concettuali
-    Servono per rappresentare le entità del mondo reale in fase di progettazione (pensa UML)
+    Servono per rappresentare le entità del mondo reale in fase di progettazione (pensa UML). Include la scelta dei campi e dei vincoli degli oggetti.
 
 ![Progettazione dati di basi](./images/progettazione-db.png)
 
@@ -119,3 +119,17 @@ Per modellare le associazioni usiamo un diagramma come questo:
 - No barra: totalità
 
 Le associazioni possono essere anche ricorsive o riflessive: una Persona può avere relazioni con altre Persone
+
+# Classi
+
+Le classi sono organizzate in gerarchie. Le classi possono avere *sottoclassi*, rappresentate in questo modo:
+![Diagramma sottoclassi](./images/sottoclassi.png)
+*Rappresentazione della gerarchia tra classi. Il pallino indica la disgiunzione, la freccia con doppia riga indica copertura. Una freccia normale indica che le sottoclassi non sono correlate.*.
+
+Le sottoclassi di una classe sono *disgiunte* se gli elementi di una sottoclasse non possono fare parte di un'altra sottoclasse. Se l'unione degli elementi delle sottoclassi contiene tutti gli elementi della superclasse si ha *copertura*. Se si ha sia disgiunzione che copertura allora si ha una *partizione*.
+
+## Vincoli
+
+È possibile aggiungere dei vincoli ai tipi di oggetti:
+![Rappresentazione di classi con vincoli](./images/classi-vincoli.png)
+*Rappresentazione di classi con vincoli. La classe "Studenti" ha come vincoli che la matricola deve avere lunghezza 6 e che la sua matricola deve essere equivalente al suo id (?). La classe "Esami" ha come vincoli il fatto che il voto deve essere tra 18 e 30, e che la lode può essere vera solo se il voto è 30.*
