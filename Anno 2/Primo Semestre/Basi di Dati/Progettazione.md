@@ -1,12 +1,8 @@
-# Progettazione di basi di dati
-
 La progettazione di una base di dati è la parte più importante della sua gestione. Nella progettazione bisogna cercare di modellare i dati nel modo più fedele alla vita reale possibile.
 
-## Ciclo di vita dei sistemi informativi
+# Ciclo di vita dei sistemi informativi
 
-I sistemi informativi hanno varie "fasi" di sviluppo/utilizzo dei sistemi informativi (progettazione, analisi dati, transazioni...).
-
-Le fasi del ciclo di vita di un database sono:
+I sistemi informativi hanno varie "fasi" di sviluppo/utilizzo (progettazione, analisi dati, transazioni...):
 - Studio di fattibilità
     Definizione di priorità e costi
 - Raccolta e analisi dei requisiti
@@ -17,22 +13,24 @@ Le fasi del ciclo di vita di un database sono:
 - Collaudo
 - Funzionamento
 
+Diciamo che è un "ciclo" di vita perché le fasi possono ripetersi, per esempio per adattare la BD a nuove specifiche.
+
 ![Fasi di vita di un database](./images/database-lifecycle.png)
 
-## Modello astratto
+# Modellare dati
 
-> Un modello astratto è la rappresentazione formale di idee e conoscenze relative ad un fenomeno
+Ovviamente è impossibile rappresentare i dati in una base di dati esattamente come li concepiamo in realtà, quindi usiamo dei *modelli astratti* per rappresentarli:
+> Un modello astratto è la rappresentazione formale di idee e conoscenze relative ad un fenomeno.
 
-Un modello rappresenta dei fatti con un linguaggio formale ed è il risultato di un processo di interpretazione guidato dal modello di astrazione previsto
+Più precisamente, un modello astratto è la rappresentazione di certi fatti tramite un linguaggio formale, ed è risultato di un processo di interpretazione guidata dalle conoscenze dell'interpretatore. Un modello non è unico: diversi interpretatori potrebbero scegliere diversi metodi per interpretare gli stessi dati.
 
 Nell'elaborazione di un modello astratto bisogna scegliere le strutture da utilizzare per organizzare i dati e le loro relazioni
 
-## Tipi di modelli (?)
-
+Ci sono due principali tipi di modelli:
 - Logici
-    Indipendenti dalle strutture dati fisiche; sono i modelli dei DBMS (?)
+    Indipendenti dalle strutture dati fisiche; sono i modelli dei DBMS
 - Concettuali
-    boh
+    Servono per rappresentare le entità del mondo reale in fase di progettazione (pensa UML)
 
 ![Progettazione dati di basi](./images/progettazione-db.png)
 
@@ -43,7 +41,7 @@ Ci sono diversi aspetti da considerare nella progettazione di una base di dati:
     Include gli oggetti, i loro vincoli e relazioni, le operazioni concesse agli utenti
 - Logico: Quale meccanismo di astrazione voglio usare per rappresentare gli oggetti del dominio?
     In genere si usa l'astrazione di classi e oggetti  
-    Useremo la notazione grafica dei diagramma ER (entità-relazione)
+    Useremo la notazione grafica dei diagrammi ER (entità-relazione)
 - Linguistico: Con quale linguaggio formale voglio definire il modello?
 - Pragmatico: Come lo voglio implementare?
 
@@ -63,19 +61,38 @@ boh oggetti e classi
 
 Il primo passo nella progettazione di un db è identificare i tipi di oggetti che dobbiamo modellare; bisogna poi nominarli e definire l'insieme di attributi che possono avere.
 
-## Associazioni
+Gli oggetti sono composti da degli attributi ed un *tipo oggetto*: l'insieme dei messaggi a cui l'oggetto può rispondere
+    In genere i tipi oggetti non sono rappresentati dai diagrammi entità-relazione
 
-Dopo aver definito gli oggetti, possiamo definire le *istanze di associazione* tra oggetti: i legami logici tra i vari oggetti.
+> [!WARNING]
+> Oggetti e classi nell'ambito di basi di dati **non sono** la stessa cosa delle classi e oggetti nei linguaggi di programmazione:
+> - I tipi oggetti sono l'equivalente delle classi nei linguaggi di programmazione  
+>    I loro membri accessibili (direttamente o tramite metodi) sono detti *attributi*, e **non possono essere di altri tipi oggetti**, solo tipi primitivi o non-primitivi (record, sequenza, enumerazione)
+> - L'*interfaccia* di un *tipo oggetto* è l'equivalente dei **getter e setter** di una classe OOP  
+>    Diversa dall'interfaccia di un *oggetto*, che è equivalente alle interfacce OOP + l'interfaccia del tipo oggetto dell'oggetto
+> - Le *classi* **NON SONO** le classi OOP (l'equivalente delle classi OOP sono i tipi oggetti), ma sono *collezioni* di oggetti **con lo stesso tipo oggetto**.  
+>    Nonostante questo, le classi (e quindi collezioni di oggetti con lo stesso tipo) sono comunque organizzate gerarchicamente
+
+
+![Esempio di un tipo oggetto](./images/ex-tipo-oggetto.png)
+*Rappresentazione grafica di un tipo oggetto con 4 campi di tipi primitivi e 3 campi di tipi non-primitivi, rispettivamente: enumerazione, record, sequenza*.
+
+# Associazioni
+
+Dopo aver definito gli oggetti, possiamo definire le *istanze di associazione* tra entità: legami logici tra di loro.
     Per esempio: "l'utente Tizio ha in prestito una copia della Divina Commedia" mette in relazione l'oggetto "Tizio" con l'oggetto "Divina Commedia"
 
-Un'*associazione* $R(X, Y)$ tra 2 collezioni di entità $X$ e $Y$ è un insieme di istanze di elementi di $X$ e $Y$.
+Un'*associazione* $R(X, Y)$ tra 2 collezioni di entità (classi) $X$ e $Y$ è un insieme di istanze di associazione tra elementi di $X$ e $Y$. In genere le associazioni variano nel tempo (Tizio può restituire la sua copia della Divina Commedia e prendere in prestito un'altro libro).
     Il prod. cartesiano $X \times Y$ è detto *dominio* dell'associazione
 
-### Tipi di associazioni
+> [!NOTE]
+> Le **associazioni** sono tra *classi*, le **istanze di associazione** sono tra *oggetti*
+
+## Tipi di associazioni
 
 Un'associazione è caratterizzata dalla sua *molteplicità* e *totalità*.
 
-#### Molteplicità
+### Molteplicità
 
 > Un'associazione $R(X, Y)$ è *univoca* rispetto ad $X$ se per ogni elemento $x \in X \exists$ al più 1 elemento di $Y$ associato a $x$. Se questo non vale, l'associazione è *multivalore* rispetto ad $X$.
 
@@ -83,18 +100,18 @@ Notazione:
 - $R(X,Y)$ è $(1:N)$ se essa è multivalore su X ed univoca su Y
 - $R(X,Y)$ è $(N:1)$ se essa è univoca su X e multivalore su Y
 - $R(X,Y)$ è $(N:M)$ se essa è multivalore su X e multivalore su Y
-- $R(X,Y)$ è $(1:1)$: se essa è univoca su X e univoca su Y
+- $R(X,Y)$ è $(1:1)$ se essa è univoca su X e univoca su Y
 
 ![Esempi di tipi di associazioni](./images/molteplicita-associazione.png)
 
-#### Totalità
+### Totalità
 
 > Un'associazione $R(X, Y)$ è *totale* su $X$ se $\forall x \in X\ \exists$ almeno 1 $y\in Y$ associato ad $x$. Se questo non vale, l'associazione è *parziale* su $X$.
 
-### Modellare associazioni tra oggetti
+## Modellare associazioni tra oggetti
 
 Per modellare le associazioni usiamo un diagramma come questo:
-![Diagramma che modella le associazioni tra oggetti](./images/modello-associazioni.png)
+![Diagramma che modella le associazioni tra classi](./images/modello-associazioni.png)
 
 - Freccia singola: unicità
 - Doppia freccia: molteplicità
@@ -102,4 +119,3 @@ Per modellare le associazioni usiamo un diagramma come questo:
 - No barra: totalità
 
 Le associazioni possono essere anche ricorsive o riflessive: una Persona può avere relazioni con altre Persone
-

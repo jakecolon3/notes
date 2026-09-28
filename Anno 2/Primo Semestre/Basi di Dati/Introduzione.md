@@ -112,7 +112,19 @@ Per esempio, in un database di studenti, lo studente è una relazione con campi 
 
 # Storia
 
-I primi database erano gerarchici; il principale modello di database gerarchico è il modello reticolare
+Prima dei modelli relazionali, c'erano due principali modelli di basi di dati: reticolare e gerarchico.
+
+### Modello reticolare
+
+- I dati sono rappresentati come record omogenei
+- Le relazioni sono implementate come puntatori tra record
+- Rappresentato con struttura a grafo
+Il principale modello reticolare è il modello **CODASYL**.
+
+### Modello gerarchico
+
+- Tipo di modello reticolare con struttura ad albero
+    Ogni nodo ha un solo genitore
 
 Negli anni '70 IBM introdusse il modello relazionale, ed è ancora lo standard oggi
 
