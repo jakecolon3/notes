@@ -62,12 +62,22 @@ Questa rappresentazione ha grandezza in $O(n^2)$ e si impiega tempo in $O(n^2)$ 
     Più precisamente, la grandezza è $O(n+\sum_v \deg(v))$ (n + somma gradi)
     La somma dei gradi dei nodi di un grafo è anche uguale a $2\times m$, con $m$ numero di archi (convenzione).
 
-## Cammini
+# Cammini
 
 > Un *cammino* nel grafo è una passeggiata che non ripete archi o vertici.
 
 Data una sequenza che rappresenta una passeggiata, si può trasformare la passeggiata in un cammino eliminando tutti gli elementi tra il primo duplicato ed il secondo (escluso)
-Segue che esiste una passeggiata da $x\to y \iff$ esiste un cammino da $\x\to y$.
+Segue che esiste una passeggiata da $x\to y \iff$ esiste un cammino da $x\to y$.
+
+## [Visita di un grafo](./Visite.md)
+
+Per scoprire se esiste un cammino tra due nodi $x$ e $y$ di un grafo, possiamo fare un elenco di tutti i gli altri nodi che possiamo raggiungere da $x$, ricorsivamente.
+
+Ad ogni passo dobbiamo scegliere che nodo visitare, e ci sono 2 metodi:
+- DFS (Depth First Search)
+    Partendo da $x$, ad ogni passo scelgo un nodo a caso che ancora non è stato visitato. Se raggiungo una posizione in cui non posso visitare altri nodi non visitati, torno indietro fino alla prima posizione da cui posso visitare un nuovo nodo. L'algoritmo termina quando si torna al primo nodo e non ci sono altri vertici da visitare.
+- BFS (Breadth First Search)
+    Il contrario, prima si visitano tutti i nodi visitabili dal punto di partenza
 
 # Esempi
 

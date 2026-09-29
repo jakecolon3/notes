@@ -394,3 +394,263 @@ The code to be run when a signal is received is stored in the *interrupt vector 
 For high-volume data tranfers, both polling and interrupts are too slow. The solution is introducing a specialized component, the *Direct Memory Access controller*, to handle these operations.
 
 When a large read is completed, the CPU requests the DMA controller to move the data directly from the device to main memory. While the DMA controller is working, the CPU is free to continue normal execution. Then the controller sends a single interrupt when it finishes transferring.
+
+# The role of the OS
+
+- Abstraction layer
+- Resource manager
+- Control program
+    The OS governs other program's execution, isolating them from interfering with each other, protecting itself from unauthorized modifications from programs, and terminating programs that would cause errors
+
+The OS acts as an interface to the hardware for the user
+![The kernel lives on a different layer than user applications](./images/kernel-user-space.png)
+
+## History
+
+Initially, computers didn't need an OS since computers were made to only run 1 program at a time, input via manually input punch cards or tape, basically making the machine operator the OS. This was inefficient since the CPU sits idle while the machine operator loads punch cards into the computer.
+
+The first primitive "OS" was a small program, called the *Resident Monitor*, that batched jobs and executed them sequentially. There were still a lot of wasted time though, as I/O operations blocked the CPU from doing anything other than wait for the operation to complete.
+
+The next step was pre-loading *multiple jobs* in memory **at the same time**. The resident monitor could then transfer execution to a different job while waiting for I/O. Though this required special hardware support to insulate the jobs' memory and to schedule the CPU.
+
+Then *Timesharing* was introduced. This allowed interactive computing: the CPU cycles between active users via a timer interrupt. Each user gets a terminal and a span of time to interact, and since the CPU switches execution in milliseconds, the user feel as if they have the entire machine to themselves. This system introduced yet more problems, such as issues with concurrency, controlling file access, isolating processes.  
+Modern OSes still use timesharing.
+
+When personal computers came along, they took a bit of a step back: MS-DOS for example didn't have memory isolation. As time went on though, we got proper multi-tasking OSes with proper protections.
+
+## Virtualization
+
+> Virtualization is the act of making a physical resource appear as multiple logical resources.
+
+The OS uses virtualization to create seemingly thousands of independent processors for processes, and too assign each process an isolated virtual address space.
+
+## Concurrency
+
+The operating system has to manage multiple tasks running *at the same time* (not like timesharing), such as:
+- Multiple threads within the same program
+- Multiple applications running on different CPU cores
+- Internal OS tasks such as handling interrupts
+
+The challenge is to break down some of the walls created by process isolation when needed (same program threads), and doing it safely. The OS allows this with locks, semaphors, and synchronization APIs.
+
+## Persistence
+
+RAM does not get saved across power cycles, so the OS has to provide an interface for programs to keep persistent memory:
+- Hardware devices
+- Filesystem
+- Reliable file access
+
+## Security
+
+The OS is also responsible for ensuring that processes behave as expected:
+- Memory isolation
+- Execution isolation
+    A program crashing shouldn't affect other programs that don't rely on it
+- Access control
+
+## Performance
+
+The OS should also handle all of these tasks without sacrificing too much performance. The OS has to make some trade-offs (throughput vs. latency; security vs. speed) to achieve this.
+
+# OS Abstractions
+
+> An *abstraction* is a simplified view of a complex system that exposes essential details while hiding unnecessary mechanics.
+
+![Abstraction layers in a "Hello, World" program](./images/abstraction.png)
+*Abstraction layers. Most of the complexity happens in the "Operating System Abstraction" layer.*
+
+## The Process
+
+The **process** is the most important abstraction the operating system provides.
+
+> A process is a running instance of a program in execution.
+
+A process contains:
+- Executable program code
+    Machine instructions
+- Current state
+    Registers, Program Counter, Stack Pointer
+- Private virtual address space
+- Opened file descriptors and I/O sockets
+
+A *process* is different from a *program*: the program is static, it's the machine code that sits in the filesystem; a process is active, it changes over time, it's temporary.
+
+## The Thread
+
+Within a single process, there can be multiple flows of execution called *Threads*. Threads owned by the same process *share memory* and file descriptors, but the have individual program counters, stacks, and registers.
+![Memory layout of a single-threaded vs. multi-threaded process](./images/threading-memory.png)
+
+## The Address Space
+
+Physical RAM is just a sequence of bytes. The OS abstracts this into an *Address Space*. Each process is given a contigous range of addresses (from 0 to 2^64 - 1 on 64-bit architecture), but this range of addresses **doesn't** map to actual physical memory; any given address in any given process can map to any other physical address in RAM, and it's the OS's job to map virtual memory to physical memory. This is what allows the isolation of processes' memory, since processes only have access to the *virtual* address space, not the physical space.
+
+### Benefits of virtualization
+
+Virtualization provides three main benefits:
+1. Ease of use
+    Programmers don't have to worry about where in physical memory their program will be executing
+2. Isolation
+    Security etc.
+3. Efficiency
+    The OS can load only the parts of the program's memory that are currently needed, a process called *paging*, moving unneeded sections to disk.
+
+## The File
+
+Disk storage operates on physical blocks and sectors. The OS provides *files* as an abstraction for convenient access.
+
+Files are organized into *directories*, and the OS translates file paths into physical drive coordinates.
+
+## Sockets
+
+etc.
+
+## Summary
+
+![Summary of the OS's main abstractions](./images/abstraction-summary.png)
+
+# Hardware Support
+
+The OS can't prevent user programs from doing certain things to violate its security assurances, such as disabling memory protection, reading files that the user shouldn't have access to, or disabling interrupts. Though it can do these things with external hardware support.
+
+## Execution Modes
+
+Modern CPUs provide at least 2 *modes* of operation:
+1. User Mode
+    Unprivileged execution mode with restricted access, enforced *by the CPU*. Used by user applications.
+2. Kernel Mode
+    Full access to the hardware's capabilities. Used by the OS.
+
+In x86 there are 4 privilege levels:
+![Privilege rings](./images/privilege-rings.png)
+
+Though, modern operating systems only use rings 0 and 3, since it's simpler and more portable.
+
+To track the execution mode, the CPU stores a *mode bit* in a status register (`prs`, or the Code Segment Selector, on x86). `0` means kernel mode, `1` means user mode.
+
+### Privileged instructions
+
+Some of the instructions that the CPU blocks user mode programs from executing are:
+- `hlt`: stop or sleep the CPU
+- `cli`/`sti`: enable or disable interrupts
+- Modifying *page table registers*
+- Direct I/O instructions (`in`/`out` on x86)
+
+### Switching modes
+
+A user program obviously can't directly write to the mode bit. The only way to switch execution mode is by using hardware-provided entry pointns:
+- System calls/traps
+    User programs can ask the OS to execute privileged operations
+- Exceptions
+    If a program does something illegal the operating system can use privileged instructions to terminate it
+- Hardware interrupts
+
+There's special instruction to switch back to user mode (`sysret`, `sysexit`, `iret` on x86). These instructions execute a context switch back to the user program, setting the mode bit to 0 beforhand.
+
+![Summary of hardware-enforced security measures](./images/hardware-security-summary.png)
+
+# System Calls
+
+Writing to file, sending packets, and creating new processes are all privileged operations. So, to execute them, user programs must **ask** the operating system to execute them. This is done via *system calls*, or *syscalls*.
+
+Usually system calls look like standard function calls in a programming language, but they cede execution to the kernel. System calls are usually much slower than regular function calls. A lot of standard library functions (like `printf()`) are actually wrappers to system calls.
+
+## Anatomy of a Syscall
+
+When you use a syscall from a programming language, what happens is:
+1. Setup
+    The wrapper function copies the arguments to the correct CPU registers, including the syscall id
+2. Trap
+    The wrapper executes `syscall`
+3. Transition
+    The CPU switches to kernel mode and jumps to the syscall's handler's address
+4. Execution
+    Kernel validates arguments, performs the execution, puts the return value in a specific register, and executes `sysret`
+5. Return
+    CPU switches to user mode and continues execution
+
+![Syscall setup in assembly](./images/syscall-asm.png)
+
+## Syscall Arguments
+
+Syscalls get their arguments in one of three ways:
+- Registers
+- Stack pointer
+    If values don't fit into registers, the wrapper copies them in a memory block and passes the pointer to the block
+- User stack
+    Values are pushed onto the stack and the kernel reads the stack
+
+### Validation
+
+The kernel **must** assume that syscall arguments are invalid when receiving them. So it has to validate them:
+- Are pointers valid?
+- Are buffer sizes valid?
+- Does the executing user have the correct permissions?
+
+## Common UNIX syscalls
+
+![Table of common standard UNIX syscalls](./images/unix-syscalls.png)
+
+## Syscall cost
+
+Syscalls are expensive to execute: the CPU has to switch mode, which means having to execute a full context switch to kernel mode and back. Also cache gets polluted
+
+### Optimizing syscalls
+
+To optimize program speed, standard libraries try to reduce the amount of syscalls as much as possible. An example is C `printf()`: it buffers characters until the buffer fills or a newline is encountered before calling `write`.
+
+# Unexpected events
+
+Sometimes the CPU has to switch to kernel mode even when no process specifically requests it: for example when the user inputs something, a program does something illegal, or hardware triggers an interrupt.
+
+- Syscalls
+    Synchronous (happens at a specific instruction), intentional (specifically requested)
+- Exception
+    Synchronous, unintentional. Can be recoverable (*faults*) or unrecoverable. In case of a recoverable exception, the CPU try to restart execution after handling the exception.
+- Interrupts
+    Asynchronous, unintentional
+
+## The Interrupt Descriptor Table
+
+Since traps are also interrupts, we need to be able to figure out the reason we entered kernel mode.
+
+All of these events are identified by an index into a table of handler functions. There are 2 versions of this table:
+- Interrupt Vector Table (IVT)
+- Interrupt Descriptor Table (IDT) (newer)
+
+These tables contain some information about the event type that was received and the address to the handler associated with the event type.
+
+### Disabling interrupts
+
+The CPU can disable some interrupts. Some interrupt handlers use this mechanism.
+
+## Timer interrupt
+
+The CPU contains a hardware clock that periodically generates an interrupt. When the CPU receives this interrupt it forcibly switches execution to the kernel to allow it to decide what process to return execution to. This is the mechanism that allows timesharing to work.
+
+# Memory Protection
+
+On modern systems, the virtual address space is divided between user and kernel.
+
+## Basic protection
+
+The simplest hardware protection mechanism is the *base and bounds registers* scheme. This system uses 2 registers:
+- Base register: holds the starting physical address of the process
+- Bounds register: holds the address at the boundary of the process' address space
+
+These registers are then used to map a process' virtual memory into physical memory (offset with the base register) and validate that the access is valid (with the bounds register).
+
+With this scheme, every time a user program accesses memory, the CPU hardware translates the virtual address to the physical address by adding the process' base register and validates that it is within the allowed range.
+
+## The Memory Management Unit
+
+Modern systems don't use this scheme. Instead they make use of the *Memory Management Unit* (MMU). This is a hardware component that translates virtual addresses into physical addresses and validates them (but in a smarter way than the base and bounds registers scheme).
+
+The MMU is mostly used since modern OSes use paging to optimize memory usage.
+
+If a process tries to access invalid memory, the MMU raises a *page fault*. This can be handled in one of 2 ways:
+- If the memory access is valid but refers to memory that is paged, the kernel loads the page into RAM and retries the instruction
+- If the access is invalid, the kernel terminates the program with `SIGSEGV`
+
+### Note: DMA
+
+We saw that the DMA controller writes directly to RAM. Obviously accessing it needs to be a privileged operation.
