@@ -128,7 +128,7 @@ Il DFS si può applicare anche su grafi diretti, basta seguire la direzione degl
 > Cercare una programmazione dei processi rispettando tutti i vincoli.
 
 Possiamo risolvere questo problema usando il DFS su un grafo diretto: costruiamo un grafo con gli $x_n$ come nodi e i vincoli come archi. Poi se applichiamo il DFS e troviamo un cammino completo allora abbiamo trovato una soluzione.
-
+x
 Se otteniamo una soluzione valida, possiamo rappresentarla come una lista di nodi connessi da archi che vanno da sinistra a destra. Questa rappresentazione è detta *ordine topologico del grafo*.
 
 ```
