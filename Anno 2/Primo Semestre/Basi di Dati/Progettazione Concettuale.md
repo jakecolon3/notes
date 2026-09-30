@@ -6,15 +6,10 @@ Possiamo distinguere due elementi di una base di dati:
 
 L'istanza sta allo schema come l'oggetto sta alla classe in OOP
 
-Per progettare una buona base di dati conviene avere una buona metodologia di progettazione.
-
-### Metodologia di progettazione
-
-?
-
-Dobbiamo assicurarsi che ci sia una distinzione tra "cosa voglio modellare" e "come voglio farlo".
+Per progettare una buona base di dati conviene avere un buon processo: è utile dividere la progettazione in fasi, e poi scegliere una strategia ed un modello di rappresentazione dei dati per ogni fase. Questo ci aiuta a creare una distinzione tra "cosa voglio modellare" e "come voglio farlo".
 
 ![Diagramma delle fasi di progettazione di una base di dati](./images/fasi-progettazione.png)
+*Fasi di progettazione di una base di dati*.
 
 # Progettazione concettuale
 
@@ -41,11 +36,9 @@ Le entità hanno dei nomi. Questi nomi dovrebbero essere rappresentativi della l
 
 Dopo aver identificato le entità, dobbiamo individuare le *associazioni*, cioè i legami logici tra le varie entità.
 
-Le associazioni sono tra entità con caratteristiche comuni.
-
 Le occorrenze di associazioni possono essere *binarie* se sono tra coppie di occorrenze di entità, o *n-arie* se sono tra più occorrenze di entità. Le associazioni sono n-uple ordinate.
 ![Esempio di schema entità-relazione](./images/schema-er.png)
-*Rappresentazione del modello E-R. Le entità sono racchiuse in rettangoli, le relazioni in rombi.*
+*Modello E-R in uno schema concettuale. Le entità sono racchiuse in rettangoli, le relazioni in rombi.*
 
 Anche le associazioni hanno nomi. Sono al singolare ed è meglio usare sostantivi invece che verbi (non è una regola strettissima)
 
@@ -57,7 +50,7 @@ Abbiamo già visto che le associazioni/relazioni possono essere ricorsive. Posso
 
 ### Attributi
 
-Gli attributi di un'entità o di una relazione devono essere tutti e soli i fatti di interesse ai fini dell'applicazione.
+Gli attributi di un'entità o di una relazione sono le proprietà fondamentali di quell'entità/relazione. Devono essere tutti e soli i fatti di interesse ai fini dell'applicazione.
 
 #### Attributi composti
 
@@ -67,17 +60,13 @@ Gli attributi possono anche essere *composti* da attributi singoli.
 
 ## Esempio: basi di dati di una società
 
-> La società comprende più dipartimenti, ognuno con nome e localizzato in una sede; più
-dipartimenti in sedi diverse possono avere lo stesso nome, e in una sede possono esserci
-più dipartimenti.
+> La società comprende più dipartimenti, ognuno con nome e localizzato in una sede; più dipartimenti in sedi diverse possono avere lo stesso nome, e in una sede possono esserci più dipartimenti.
 >
-> Ad ogni Dipartimento afferisce in certo numero di impiegati, ognuno a partire da una
-certa data, e uno degli impiegati svolge il ruolo di Direttore del Dipartimento.
+> Ad ogni Dipartimento afferisce un certo numero di impiegati, ognuno a partire da una certa data, e uno degli impiegati svolge il ruolo di Direttore del Dipartimento.
 >
-> Ogni impiegato partecipa ad uno o più progetti, ognuno con un nome ed un budget
-assegnato.
+> Ogni impiegato partecipa ad uno o più progetti, ognuno con un nome ed un budget assegnato.
 
-Cerchiamo di fare la progettazione concettuale di una base di dati formata su questa specifica.
+Cerchiamo di fare la progettazione concettuale di una base di dati formata su questa descrizione.
 
 Le entità potrebbero essere gli impiegati, i progetti, i dipartimenti e le sedi. Le associazioni potrebbero essere di "composizione" tra dipartimenti e sedi, di "partecipazione" tra impiegati e progetti, e di "afferenza" e "direzione" tra impiegati e dipartimenti.
 
