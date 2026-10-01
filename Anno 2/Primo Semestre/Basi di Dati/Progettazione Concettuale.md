@@ -100,3 +100,45 @@ In base ai vincoli sul massimo, le associazioni sono chiamate:
     (x, 1)/(x, N)
 - Molti a molti
     (x, N)/(x, N)
+
+#### Cardinalità degli attributi
+
+Si può associare una cardinalità anche agli attributi di un'entità per indicarne l'opzionalità o per indicare un attributo multivalore. Se la cardinalità di un'attributo non è specificata allora è $(1, 1)$.
+![Rappresentazione della cardinalità degli attributi](./images/cardinalita-attributi.png)
+
+## Identificare entità
+
+Ad ogni entità è associato un identificatore, costituito da uno o più attributi (*identificatore interno*) o dalle sue associazioni con altre entità (*identificatore esterno*) (?)
+![Rappresentazione degli identificatori delle entità](./images/identificatori-entita.png)
+*Identificatori in un diagramma E-R. I pallini bianchi indicano gli identificatori: "Corso" è identificato dal suo "Codice" e esternamente tramite la sua associazione con "Edizione Corso" tramite la "Data inizio", "Edizione Corso" è identificato dall'attributo "Data inizio", "Lezione" è identificata da tutti i suoi attributi.*
+
+Ogni entità deve avere almeno 1 identificatore, può averne più di uno.
+
+Un'identificazione esterna è possibile solo tramite un'associazione a cui l'identità da identificare partecipa con cardinalità $(1, 1)$.
+
+## Generalizzazioni
+
+> Una *generalizzazione* mette in relazione delle entità $E_1,...,E_n$ con un'altra entità $E$ che le comprende come casi particolari.
+
+![Rappresentazione di una generalizzazione](./images/rappresentazione-generalizzazioni.png)
+
+Le $E_i$ sono quindi una specie di sottotipo di $E$.
+
+Un'entità può essere specializzazione di più generalizzazioni diverse.
+
+È possibile imporre vincoli sulla partecipazione alle generalizzazioni (uno studente non può essere impiegato, con "studente" e "impiegato" generalizzazioni di "persona")
+
+Le entità figlie di una generalizzazione $E$:
+- Ereditano le proprietà (attributi, associazioni, generalizzazioni) di $E$
+- Sono anche occorrenze di $E$
+- Ogni occorrenza di $E$ può essere occorrenza di zero o più delle sue figlie (?)
+
+> Una generalizzazione è *totale* se ongi occorrenza dell'entità padre è un'occorrenza di **almeno una** delle entità figlie. Altrimenti è *parziale*.
+
+> Una generalizzazione è *esclusiva* se ogni occorrenza dell'entità padre è al più un'occorrenza di una delle entità figlie. Altrimenti è *sovrapposta*.
+
+Vedi slide 3 pg. 69-70 per esempio.
+
+---
+
+Durante la progettazione concettuale, è buona pratica allegare anche della documentazione esterna ai diagrammi E-R, come il dizionario dei dati e i vincoli non esprimibili a questo livello di progettazione.
