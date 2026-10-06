@@ -187,3 +187,32 @@ def sol1(p, x, y):
         l2.remove_first()
     return current
 ```
+
+### Con DFS
+
+Dato un DFS, aggiungiamo un contatore che incrementa ogni volta che troviamo un vertice non visitato. Definiamo una funzione $t(v) =$ valore del contatore quando $v$ è stato visitato la prima volta, ed una funzione $T(v) =$ valore del contatore quando $v$ è stato visitato l'ultima volta (nella risalita). Applicando queste funzioni ai nodi del grafo, ad ogni nodo abbiamo associato un intervallo $[t(v), T(v)]$.
+
+Proposizione:
+> Per ogni $u,v$:
+> $$
+\begin{align}
+&i)   &&[t(u),T(u)]\subseteq[t(v),T(v)]        &&:\text{ archi all'indietro} \\
+&ii)  &&[t(v),T(v)]\subseteq[t(u),T(u)]        &&:\text{ archi in avanti} \\
+&iii) &&[t(u),T(u)]\cap[t(v),T(v)] = \emptyset &&:\text{ archi di attraversamento} \\
+\end{align}
+$$
+
+Dimostrazione:  
+Dobbiamo dimostrare che gli intervalli non si sovrappongono, quindi che è impossibile che: $t(u)<t(v)\leq T(u)<T(v)$:
+> Se $t(u)<t(v)\Rightarrow v$ è inserito nello stack dopo $v$ e se $t(v)\leq T(u)$ per forza $v$ è stato rimosso dallo stack prima di $u \Rightarrow T(v)\leq T(u)\Rightarrow$ non è possibile che $t(u)<t(v)\leq T(u)<T(v)$.
+
+$t(v)$ e $T(v)$ hanno alcune proprietà:
+- Se $t(v)=T(v)$ allora $v$ è una foglia.
+- TODO
+
+Possiamo vedere che gli archi di attraversamento sono quelli che *non sono percorsi* dal DFS (e quindi sono fratelli), gli archi all'indietro sono gli archi che vanno da un vertice *al suo antenato*, e gli archi in avanti sono gli archi che vanno da un vertice *ad un suo discendente*.
+
+Ne grafi non diretti, il caso $iii)$ non è possibile: è impossibile che due foglie connesse abbiano intervalli disgiunti (se una è raggiunta dal DFS è impossibile che venga rimossa dallo stack prima che venga visitata l'altra). (??) -> Tutti gli archi $(u,v)$ che non fanno parte dell'albero di visita del DFS sono archi all'indietro.
+
+Proposizione:  
+> Se $G$ un grafo connesso ha un ciclo $\iff$ ogni DFS ha un arco all'indietro.
