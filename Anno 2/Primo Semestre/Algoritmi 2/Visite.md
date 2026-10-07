@@ -215,4 +215,26 @@ Possiamo vedere che gli archi di attraversamento sono quelli che *non sono perco
 Ne grafi non diretti, il caso $iii)$ non è possibile: è impossibile che due foglie connesse abbiano intervalli disgiunti (se una è raggiunta dal DFS è impossibile che venga rimossa dallo stack prima che venga visitata l'altra). (??) -> Tutti gli archi $(u,v)$ che non fanno parte dell'albero di visita del DFS sono archi all'indietro.
 
 Proposizione:  
-> Se $G$ un grafo connesso ha un ciclo $\iff$ ogni DFS ha un arco all'indietro.
+> Un grafo $G$ non diretto connesso ha un ciclo $\iff$ ogni DFS ha un arco all'indietro.
+
+Dimostriamo "Se $G$ è non diretto connesso con ciclo $\Rightarrow$ ogni DFS ha un arco all'indietro".
+
+Prendiamo un grafo contenente un ciclo $C$. $C$ non può essere contenuto interamente nell'albero di ricerca (gli alberi di ricerca non hanno cicli) $\Rightarrow\ \exists\ e\in E(C)$ che non fa parte dell'albero $\Rightarrow\ e$ è un arco all'indietro.
+
+Per l'altro lato, prendiamo $u, v$ arco all'indietro con $u$ discendente di $v$. Nell'albero di visita $\exists$ un cammino $P$ da $u\to v$ e $P + u,v$ è un ciclo (??? i guess).
+
+Proposizione:  
+Sia $G$ un grafo diretto. $\exists$ ciclo in $G\ \iff\ \exists$ un arco all'indietro per qualsiasi DFS nel grafo.
+
+Prima parte:  
+Se $\exists$ arco $u,v$ da $u$ un discendente di $v$, nell'albero di visita $\exists$ un cammino diretto da $v\to u$. Il cammino + l'arco $u,v$ è un ciclo diretto.
+
+boh leggi le slide sono più chiare:
+> Se il grafo non è diretto (e connesso), la presenza di un qualsiasi arco all'indietro indica l'esistenza di un ciclo. E se non ci sono archi all'indietro il grafo è aciclico perchè coincide con l'albero della DFS.
+> Lo stesso vale per grafi diretti, cioè il grafo ha un ciclo se e solo se c'è almeno un arco all'indietro. Per vederlo supponiamo che u0, u1,…,uk sia un ciclo (orientato e semplice) di G, quindi u0 = uk. Supponiamo, senza perdita di generalità, che u0 sia il primo nodo del ciclo ad essere visitato dalla DFS. Siccome tutti gli altri nodi del ciclo saranno visitati durante la DFS da u0, l'arco (uk - 1, u0) è necessariamente un arco all'indietro. Dobbiamo ora far vedere che se c'è un arco all'indietro, c'è un ciclo. Sia (w, v) un arco all'indietro. Siccome v è un antenato di w, nell'albero della DFS c'è un cammino (orientato e semplice) che va da v a w e quindi l'arco (w, v) chiude tale cammino in un ciclo.
+
+non ho seguito bene tbh
+
+---
+
+In un grafo diretto, un *pozzo universale* è un vertice $x$ che ha archi entranti da ogni altro nodo e nessun arco uscente.
