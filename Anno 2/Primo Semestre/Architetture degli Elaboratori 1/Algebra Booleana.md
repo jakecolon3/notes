@@ -1,4 +1,25 @@
-<!-- TODO: -->
+# Termini
+
+- Literal
+    Variabile o il suo complemento
+- Implicante
+    Prodotto di literal
+- Minterm
+    Prodotto che include tutte le variabili di input
+- Maxterm
+    Somma che include tutte le variabili di input
+
+## SOP e POS
+
+Ogni equazione può essere scritta in forma SOP (sum of products) e POS (product of sums)
+
+Mettendo ogni possibile permutazione di input in tabella, si può trovare la forma SOP dell'equazione scrivendo i minterm di ogni riga e prendendo quelli che sono veri in output
+
+![sop](./images/sop-tabella.png)
+
+Per trovare la POS, si fa l'opposto: si prende il maxterm (somma) di ogni riga *falsa*, e si fa il prodotto tra loro
+
+![pos](./images/pos-tabella.png)
 
 # Dimostrare teoremi
 
@@ -15,9 +36,6 @@ Possiamo dimostrare i teoremi in due modi:
 # Semplificare equazioni
 
 > Semplificare un'equazione significa ridurla al minor numero di implicanti, dove ogni implicante ha il minor numero di literals.
-
-> [!NOTE]
-> Implicante = prodotto di literals; Literal = variabile o il suo complemento
 
 Oltre ad applicare i teoremi per ridurre il numero di variabili, a volte è utile applicarli per *espandere* le variabili già presenti.
 

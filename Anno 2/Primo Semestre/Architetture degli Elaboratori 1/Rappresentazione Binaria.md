@@ -126,6 +126,8 @@ Lo standard fissa anche altre regole come per esempio la rappresentazione dello 
 
 L'ultima di queste regola riguarda i numeri *denormalizzati*: se l'esponente è tutti 0 allora la mantissa non è interpretata con l'1 sottinteso. Questo permette di rappresentare numeri fino a $2^{-149}$. È stata scelta questa convenzione perché in questo modo può continuare a shiftare i bit del numero a destra per dividere e continua a funzionare anche dopo che finisce lo spazio nell'esponente.
 
+Da notare che nei numeri denormalizzati l'esponente è $-bias + 1$ e non $-bias$, come ci si aspetterebbe (il fatto che è tutti zeri è usato per determinare che il numero è denormalizzato, ma è trattato come se avesse il bit meno significativo dell'esponente segnato).
+
 Esistono anche float rappresentati in 16-bit, detti *half precision*, e in 64-bit, detti *double precision*.
 
 ## Arrotondamento
