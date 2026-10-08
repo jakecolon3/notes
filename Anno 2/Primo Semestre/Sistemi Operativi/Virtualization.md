@@ -176,3 +176,14 @@ Both SJF and STCF have a latency issue: the only time the scheduler moves execut
 To remedy this, the round robin approach gives each job a set amount of time to execute before switching to the next one. The amount of time should be big enough to not have too much of the percentage of CPU time spent switching contexts, but short enough to maintain interactivity.
 
 This policy improves response time, but turnaround time suffers.
+
+## Considering I/O
+
+When a process starts an I/O operation the scheduler should shedule a different process while the operation executes. By overlapping execution like this, we can reduce the CPU's idle time, increasing throughput and latency.
+
+To represent this in a scheduling algorithm, we divide each job in different sub-jobs, with I/O waits in between.
+
+![Summary of basic scheduling policies](./images/scheduling-policy-summary.png)
+*Summary of the policies we've seen so far.*
+
+
