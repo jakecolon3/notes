@@ -118,3 +118,41 @@ Regole:
 - I don't care sono presi solo se convengono
 
 Fai esercizi su questo
+
+## POS
+
+Possiamo usare le mappe K per creare una forma POS: basta raccogliere gli 0 invece degli 1. Poi ogni quadrato è un maxterm, e ogni raggruppamento è una somma.
+
+## Algoritmo di Quine-McCluskey
+
+Esiste un algoritmo per ridurre equazioni booleane con un numero arbitrario di variabili che usa lo stesso principio delle mappe K.
+
+# Logica a più livelli
+
+Le forme SOP e POS rappresentano circuiti detti a due livelli. Questi circuiti sono molto veloci, ma non sono sempre le più compatte a livello di hardware.
+
+---
+
+Abbiamo visto i pezzi fondamentali della logica combinatoria. Vediamo ora delle componenti più avanzate.
+
+# Multiplexer
+
+Un *multiplexer* ("mux") permette di "selezionare" un input:
+![Multiplexer a 2 input](./images/2-input-mux.png)
+*Questo circuito vale $D_0$ quando $S$ è 0, e vale $D_1$ quando $S$ è 1.*
+
+Per creare un mux a $n$ ingressi servono $\log(n)$ segnali di selezione.
+
+Possiamo realizzare un mux usando i buffer tristate:
+![Multiplexer con tristate buffer](./images/tristate-mux.png)
+*Collegando gli enable dei tristate ma opposti tra di loro si ottiene un mux.*
+
+In questo modo si possono anche realizzare mux a più di 2 ingressi.
+
+Una proprietà dei mux è che, con valori fissi, possono agire come una tavola della verità:
+![Mux che corrisponde alla tavola della verità di AND](./images/mux-table.png)
+
+Semplificando:
+![Mux AND semplificato](./images/mux-table-small.png)
+
+
