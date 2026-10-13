@@ -185,5 +185,3 @@ To represent this in a scheduling algorithm, we divide each job in different sub
 
 ![Summary of basic scheduling policies](./images/scheduling-policy-summary.png)
 *Summary of the policies we've seen so far.*
-
-

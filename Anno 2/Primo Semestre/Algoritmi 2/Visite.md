@@ -238,3 +238,5 @@ non ho seguito bene tbh
 ---
 
 In un grafo diretto, un *pozzo universale* è un vertice $x$ che ha archi entranti da ogni altro nodo e nessun arco uscente.
+
+In un grafo connesso e non diretto, un $e\in\ E(G)$ è un *ponte* se $\not\exists$ un ciclo $C$ che contiene $e$. Un algoritmo per controllare se un arco è un ponte consiste nel cancellare l'arco che si vuole controllare e vedere se esiste ancora un cammino tra i due nodi con un DFS. Per controllare se esiste un ponte in un grafo, si può applicare il DFS sul grafo e, per ogni arco $xy$ nell'albero del DFS, applicare il primo algoritmo per stabilire se $xy$ è un ponte (più efficiente di applicare il primo algoritmo su ogni arco del grafo).
