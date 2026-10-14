@@ -235,8 +235,55 @@ boh leggi le slide sono più chiare:
 
 non ho seguito bene tbh
 
+# Esercizi
+
 ---
 
 In un grafo diretto, un *pozzo universale* è un vertice $x$ che ha archi entranti da ogni altro nodo e nessun arco uscente.
 
+---
+
 In un grafo connesso e non diretto, un $e\in\ E(G)$ è un *ponte* se $\not\exists$ un ciclo $C$ che contiene $e$. Un algoritmo per controllare se un arco è un ponte consiste nel cancellare l'arco che si vuole controllare e vedere se esiste ancora un cammino tra i due nodi con un DFS. Per controllare se esiste un ponte in un grafo, si può applicare il DFS sul grafo e, per ogni arco $xy$ nell'albero del DFS, applicare il primo algoritmo per stabilire se $xy$ è un ponte (più efficiente di applicare il primo algoritmo su ogni arco del grafo).
+
+Proposizione:
+> Se $G$ è un grafo connesso, $T$ un albero DFS e $xy\in E(T)$ con $y$ discendente di $x$: $xy$ non è un ponte $\iff\ \exists$ un arco $uv\in E(G)\not \in T$ all'indietro con $u\in T_y$ e $v$ antenato di $x$ con $uv\not=xy$.
+
+Algoritmo per trovare tutti i ponti in un grafo:
+```python
+dfs_ponti(G, u: Node, z: Node, tt[], c, ponti):
+"""
+param u: vertice appena visitato
+param z: padre di u
+param ponti: out param
+return: il nodo "più all'indietro"
+"""
+    c++
+    tt[u] = c # tt contiene il "tempo di visita"
+    back = tt[u] # il "più all'indietro" all'inizio è il nodo appena visitato
+    for v in adj(u):
+        if tt[v] == 0:
+            b = dfs_ponti(G, v, u, tt, c, ponti) # ritorna `back`
+            if b >= tt[v]:
+                ponti.append(uv)
+            if b < back:
+                back = b
+        else:
+            if tt[v] < back and tt[v] != tt[z]:
+                back = tt[v]
+    return back
+```
+
+---
+
+> Sia $G$ un grafo diretto è fortemente connesso. Se $\forall\ x,y\in V(G)\ \exists$ un cammino diretto $x\to y$ e un cammino $y\to x$ (ogni nodo è raggiungibile da qualsiasi altro nodo).
+
+Osservazione:
+> Per qualsiasi grafo diretto e $x\in V(G),\ \exists$ un sottografo fortemente connesso che contiene $x$ (il grafo contenente solo $x$ è fortemente connesso).
+
+> Un *componente* fortemente connesso è un sottografo $H$ fortemente connesso **massimale**: per qualsiasi sottografo $H'\supset H$ (strettamente) allora $H'$ non è fortemente connesso.
+
+Da notare che se $x,y$ fanno parte dello stesso componente fortemente connesso $\not\Rightarrow\ x,y$ fanno parte di un ciclo: i cicli non possono avere nodi ripetuti, mentre un componente fortemente connesso si
+
+Dato che i componenti fortemente connessi non possono avere nodi in comune (sarebbe un unico componente), ed ogni nodo fa parte di un componente fortemente connesso (un componente può avere solo 1 nodo), l'insieme dei componenti fortemente connessi di un grafo lo partiziona.
+
+Per trovare le componenti fortemente connesse in un grafo, possiamo trovare e contrarre i cicli, riducendo il grafo a singoli nodi, e poi nella risalita ricorsiva ricostruire la lista di componenti "spacchettando" ogni componente contratto.
