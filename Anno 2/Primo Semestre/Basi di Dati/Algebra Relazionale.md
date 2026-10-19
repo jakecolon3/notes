@@ -52,6 +52,12 @@ $$
 
 Dove $\theta$ è un'operatore di confronto, $A$ e $B$ sono attributi con lo stesso dominio, e $a$ è un elemento di $\text{dom}(A)$.
 
+### Ridenominazione
+
+> $$S = \rho_{NuovoNome1,NuovoNome2,...,\leftarrow,Nome1,Nome2...}(R)$$
+
+Questa operazione rinomina gli attributi della tabella.
+
 ## Operatori Binari
 
 ### Unione
@@ -75,3 +81,37 @@ Si applica a relazioni union compatibili, e crea una relazione contenente tutte 
 > $$r_1\cap r_2$$
 
 Si applica a relazioni union compatibili, crea una tabella contenente solo le tuple contenute in entrambi gli operandi.
+
+---
+
+Per ora abbiamo visto solo operazioni su tabelle dello stesso tipo. Vediamo ora delle operazioni su tabelle di tipo diverso.
+
+### Prodotto cartesiano
+
+> $$r_1\times r_2$$
+
+Il prodotto cartesiano costruisce una relazione contenente le tuple che consistono delle tuple della prima seguite dalle tuple della seconda. (ogni tupla di una concatenata ad ogni tupla dell'altra)
+
+Quindi $r_1\time r_2$ produce elementi del tipo $(x_1,y_1,...,z_1,x_2,y_2,...)$, dove gli $x_1$ provengono da $r_1$ e gli $x_2$ da $r_2$
+
+Però c'è un problema se entrambe le relazioni hanno attributi con lo stesso nome. Per risolvere si possono rinominare i nomi degli attributi.
+
+### Join Naturale
+
+Il join naturale fa un prodotto cartesiano ma escludendo tutti gli attributi che hanno lo stesso nome e valore. È un operatore derivato:
+$$
+r_1\bowtie r_2 = \pi_{XY}(\sigma_C(r_1\times r_2))
+$$
+Dove:
+- $C$ è $R_1.A_1=R_2.A_1\land R_1.A_2=R_2.A_2\land...\land R_2.A_k=R_2.A_k$.
+- $X$ è l'insieme di attributi di $r_1$
+- $Y$ è l'insieme di attributi di $r_2 che non sono attributi di $r_1$
+
+> [!WARNING]
+> Ci sono dei casi limite da considerare: se ci sono attributi con lo nome ma non ci sono tuple con lo stesso valore per quell'attributo, si ottiene l'insieme vuoto. Se invece non ci sono attributi con lo stesso nome, la condizione diventa sempre vera e quindi si ottiene il prodotto cartesiano.
+
+### $\theta$-join
+
+> $$A\theta B$$
+
+Il join naturale non ha senso se gli attributi hanno lo stesso nome ma non lo stesso significato. Il theta-join permette di agiungere una condizione alla selezione delle tuple del prodotto cartesiano.

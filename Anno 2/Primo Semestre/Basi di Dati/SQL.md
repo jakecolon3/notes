@@ -198,4 +198,77 @@ Le viste sono interrogabili esattamente come le tabelle normali.
 
 # DML
 
-Un Data Manipulation Language serve a manipolare i *dati* all'interno di una base senza modificarne lo schema.
+Un *Data Manipulation Language* serve a manipolare i *dati* all'interno di una base senza modificarne lo schema.
+
+# DQL
+
+Un *Data Query Lanugage* è utilizzato per estrarre informazioni da una base di dati.
+
+Mentre l'algebra relazionale è procedurale, SQL è un linguaggio *dichiarativo*: si specifica solo **quali** dati si vogliono ottenere, non **come** ottenerli.
+
+## `SELECT`
+
+Il comando principale per interrogare i dati in SQL è `SELECT`.
+
+> [!NOTE]
+> `SELECT` corrisponde alla *proiezione* in algebra relazionale; la *selezione* si ottiene con la clausola `WHERE`.
+
+Sintassi:
+```sql
+SELECT ListaAttributi
+    FROM ListaTabelle
+    WHERE Condizione; -- opzionale
+```
+
+È possibile rinominare una tabella durante un query con la keyword `AS`:
+```sql
+SELECT p.Nome as Nome, p.Reddito as Reddito
+    FROM Persone p
+    WHERE p.Età < 30;
+```
+
+Per scegliere tutte le colonne di una tabella si può usare `*`:
+```sql
+SELECT *
+    FROM Persone
+    WHERE Età < 30;
+```
+
+Si possono usare espressioni in un query:
+```sql
+SELECT Reddito/2 as RedditoSemestrale
+    FROM Persone
+    WHERE Nome = 'Luigi';
+
+SELECT *
+    FROM Persone
+    WHERE Reddito > 25 AND (Età < 30 OR Età > 60);
+```
+
+### Condizioni
+
+- `LIKE`
+    La keyword `LIKE` definisce una specie di espressione regolare ca usare per scegliere stringhe:
+    ```sql
+    SELECT *
+        FROM Persone
+        WHERE Nome like 'A_d%'; -- trova nome che iniziano per 'A' e hanno 'd' come terza lettera
+        -- `_` == regex `.`
+        -- `%` == regex `+`
+    ```
+- Valori `NULL`
+    Per cercare valori nulli o non nulli *non* si usano i normali operatori booleani:
+    ```sql
+    SELECT ...
+        WHERE Attributo IS NULL;
+
+    SELECT ...
+        WHERE Attributo IS NOT NULL;
+    ```
+
+- `DISTINCT`
+    In SQL i duplicati sono mantenuti nel risultato di un query (che non accade in algebra relazionale). Per escluderli si usa `DISTINCT`:
+    ```sql
+    SELECT DISTINCT Attributi
+        FROM ...;
+    ```
