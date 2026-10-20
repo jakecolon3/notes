@@ -275,7 +275,7 @@ return: il nodo "più all'indietro"
 
 ---
 
-> Sia $G$ un grafo diretto è fortemente connesso. Se $\forall\ x,y\in V(G)\ \exists$ un cammino diretto $x\to y$ e un cammino $y\to x$ (ogni nodo è raggiungibile da qualsiasi altro nodo).
+> Sia $G$ un grafo diretto. $G$ è fortemente connesso se $\forall\ x,y\in V(G)\ \exists$ un cammino diretto $x\to y$ e un cammino $y\to x$ (ogni nodo è raggiungibile da qualsiasi altro nodo).
 
 Osservazione:
 > Per qualsiasi grafo diretto e $x\in V(G),\ \exists$ un sottografo fortemente connesso che contiene $x$ (il grafo contenente solo $x$ è fortemente connesso).
@@ -287,3 +287,67 @@ Da notare che se $x,y$ fanno parte dello stesso componente fortemente connesso $
 Dato che i componenti fortemente connessi non possono avere nodi in comune (sarebbe un unico componente), ed ogni nodo fa parte di un componente fortemente connesso (un componente può avere solo 1 nodo), l'insieme dei componenti fortemente connessi di un grafo lo partiziona.
 
 Per trovare le componenti fortemente connesse in un grafo, possiamo trovare e contrarre i cicli, riducendo il grafo a singoli nodi, e poi nella risalita ricorsiva ricostruire la lista di componenti "spacchettando" ogni componente contratto.
+
+Questo algoritmo ha complessità $O(n(n+m))$. Vogliamo quindi trovare un algoritmo che utilzza il DFS per rimanere in $O(n+m)$.
+
+Proposizione:  
+> Sia $T$ un albero DFS di un grafo diretto $G$, $u\in V(G)$ e $xy$ un arco di attraversamento con $x\in tree(u)$ ($tree(u)$ sono i discendenti di $u$). Allora $\exists\ z$ antenato comune più vicino di $x,y$ e $z$ è un antenato di $u$ ed $\exists$ figli $u_1,u_2$ di $z$ con $x\in tree(u_1),y\in tree(u_2)$, e $\forall x'\in tree(u_1),y'\in tree(u_2): t(x')>t(y')$. (vedi dimostrazione??)
+
+Definizione:  
+> Sia $C$ comp. fortemente connessa, $T$ un'arborescenza di visita di un DFS. Si dice *C-radice* il primo vertice di $C$ visitato nel DFS.
+
+Proposizione:  
+> Se $u$ è una C-radice allora:
+> 1. $C(u)\subseteq tree(u)$ ($C(u)$ = comp. fort. connessa contenente $u$)
+> 2. Se $u_1,...,u_k$ sono tutte le C-radici in $tree(u)$, allora $V(tree(u))=C(u_1)\cup C(u_2)\cup...\cup C(u_k)$.
+> (vedi dimostrazione)
+
+---
+
+Dato un modo per riconoscere le C-radici, abbiamo un DFS per trovare componenti fortemente connesse:
+```python
+def dfs_scc(G, u, open, output, vis):
+"""
+param G: grafo diretto
+param u: nodo di G
+param open: stack
+param output: out param
+param vis: nodi visitati
+"""
+    vis[u] = 1
+    open.push(u)
+    for v ~ u: # v adj u
+        if vis[v] == 0:
+            dfs_scc(G, v, open, output, vis)
+    c = [] # lista
+    if is_c_radice(u):
+        do:
+            w = open.pop()
+            c.append(w)
+        while w != u
+    output.append(c)
+```
+Parte iniziale:
+```python
+def scc(G):
+"""
+param G: grafo diretto
+"""
+    open = [] # stack
+    output = {} # set
+    vis = [0 for _ in G.nodi()]
+    for v in G.nodi():
+        if vis[v] == 0:
+            dfs_scc(G, v, open, output, vis)
+    return output
+```
+
+Vediamo ora come trovare le C-radici.
+
+Proposizione:  
+> Un nodo $u$ non è una C-radice $\iff$ nelle chiamate ricorsive del `dfs_scc` con radice $u$ viene attraversato un arco $(v,w)$ t.c. $w$ è stato già visitato ($t(w) < t(u)$) ma il componente di $w$ non è stato stabilito ($w\in$ `open`).
+> (vedi dimostrazione)
+
+boh dobbiamo aggiungere un'altra variabile per stabilire se un nodo è una C-radice
+
+l'algoritmo completo è [sulle slide](http://wwwusers.di.uniroma1.it/~wollan/Prog_Alg/Appunti/grafi_6.pdf)

@@ -238,4 +238,63 @@ Fragmentation causes issues since base and bounds necessitates contigous regions
 
 Base and bounds also suffers from internal fragmentation: the gap between the heap and stack is always physically allocated, even when unused. This breaks down with larger address spaces and multiple processes.
 
-Additionally, base and bounds prohibits a potential optimization of sharing code data blocks for multiple active copies of the same program.
+Additionally, base and bounds prohibits a potential optimization of sharing code data blocks for multiple active copies of the same program
+
+---
+
+We'll now see how to resolve fragmentation.
+
+Internal fragmentation is caused by the fact that the whole program's address space is treated as one indivisible block. We can split up this block into multiple segments and keep a base/bounds register pair for each segment. This strategy is known as *segmentation*.
+
+## Segmentation
+
+A basic segmentation strategy is to split the address space into static, stack and heap. Then when a program accesses one of these segments, the memory access is translated using the segments' base and bounds registers.
+
+This eliminates internal fragmentation: the operating system can allocate the individual segments instead of the whole address space.
+
+Each segment can also have its own read/write permissions. This increases security.
+
+Another advantage is that now different instances of the same program can share the executable's data in memory.
+
+To select the memory segment to access, we can use the top 2 bits of the address, since they can represent a total of 4 values (one of these is considered invalid).
+
+The OS must take some actions to work with segmented memory:
+1. Process creation
+2. Process termination
+    Potentially compacts nearby allocated memory (expensive)
+3. Context switch
+    Save each segment's base/bounds registers and load the new ones
+4. Growing segments
+    The `sbrk()` syscall extends the heap, extending the existing segment if there's adjacent free memory or reallocating in a different location otherwise
+5. Handle faults
+
+---
+
+Segmentation introduces a different problem: external fragmentation. There could be a large amount of total free but *not contiguous* memory, causing allocations to fail.
+
+External fragmentation happens because every segment allocation takes up a different amount of memory. To resolve it, we must use allocate fixed-size units of memory.
+
+These fixed-size blocks of memory are called *pages* in virtual memory, and *frames* in physical memory.
+
+## Paging
+
+The first question we must ask is: what is the size of a page?
+
+On modern systems, pages are usually between 2-8kb. Frames inherit the page size.
+
+Virtual pages can be allocated in any physical frame in memory. Each process then gets a *page table* that maps the virtual pages to physical frames and keeps permission flags. This setup eliminates the need for contiguity in physical memory for adjacent virtual pages.
+
+With paging, each virtual address is divided in *page number* and offset: the most significant bits represent the page number, and the rest represent an offset within that page.
+
+![Virtual addresses with paging](./images/paging-virtual-address.png)
+*Virtual addresses with paging*.
+
+To translate a page number and offset to a physical address:
+1. Get the associated frame's index from the page table
+2. Multiply the frame index by the page size
+3. Add the offset
+
+Paging does have some downsides:
+1. It introduces a small amount of internal fragmentations.
+2. Every process needs to keep a page table (can have a lot of entries)
+3. Every memory access is actually doubled: we must first access the page table (in memory) before accessing the requested address (mitigated by caching)
