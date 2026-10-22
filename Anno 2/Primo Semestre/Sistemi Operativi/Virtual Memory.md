@@ -147,3 +147,62 @@ While this approach does incur an (or more with more tree levels) additional mem
 When a process is created, the top level of the page tree is allocated, filled with invalid entries. Then when the process tries to access a page, it'll hit an invalid entry. This generates a *page fault*, handled by the OS, which allocates a new page for the process (if it's a minor page fault) and all intermediate page tree levels. Then the faulting instruction is repeated and the process continues execution.
 
 This way, the page tree grows on demand.
+
+---
+
+Thus far, we have assumed that a process' allocated memory fits entirely within RAM, but this is not always the case. To handle this without killing existing processes, we use *swapping*: a process' mapped pages can be temporarily stored on disk to make space for other pages in RAM.
+
+Moving a page from RAM to disk is known as *evicting* it.
+
+The space on disk dedicated for evicted pages is known as *swap space*.
+
+# Swapping
+
+When a process tries to access an invalid page, the MMU raises a page fault, storing the offending virtual address in a register. Then the OS checks if the requested page is in swap and, if so, loads the requested memory from disk, evicting a page from RAM if needed.
+
+To know if a page is in swap or not, PTEs keep a "present bit" to track where the page is.
+
+> [!NOTE]
+> There are 2 kinds of page faults: major and minor. Major page faults occur when a page is present but in swap. Minor page faults occur when a memory access is illegal or the page is yet to be allocated.
+> Since major faults require reading a swapped page from disk, they are slower to handle as they require an I/O operation.
+
+## Dirty bit
+
+PTEs also have a *dirty bit* indicating if the page has been written to since it was last swapped to disk. This allows skipping unnecessary writes when evicting pages, and also allows the OS to optimize by prioritizing swapping clean pages rather than dirty ones.
+
+## Page replacement
+
+When a process requests memory while RAM is full, the OS must decide which other page to evict. Since I/O operations are many orders of magnitude slower than memory accesses, a good algorithm is needed for this choice.
+
+The optimal algorithm will always pick the page that won't be accessed for the longest time to evict. This is obviously unrealistic since we can't know a process' future memory access with certainty.
+
+Algorithms for picking which page to evict are called *replacement policies*.
+
+## Replacement policies
+
+### FIFO
+
+The simplest replacement policy is just using a queue.
+
+Belady's anomaly? is this even relevant
+
+### Least Recently Used
+
+LRU evicts pages that haven't been used for the longest time. This makes use of the principle of temporal locality.
+
+This is the most commonly used algorithm due to its ease of implementation and efficiency.
+
+The most obvious way to implement this algorithm is to keep a timestamp with each page access. There's a problem though: to find the least recently used page, we must find it in an array or heap structure. Also, an accurate timestamp requires a large integer type to save, which creates a very large overhead with high page counts.
+
+To solve this, we make an approximation.
+
+#### Clock algorithm
+
+The clock algorithm keeps all physical frames in a circular list. Then to pick a page to evict it uses a "clock hand" that iterates the list and checks each frame's accessed bit. If the bit is 1, it sets it to 0 and continues. Otherwise, it picks that page to evict.
+
+This approximates the LRU algorithm while needing much less overhead.
+
+---
+
+> [!NOTE]
+> Replacement policies can be *global* or *local*. Global policies can evict frames owned by other processes than the one requesting memory, while local policies can't. Though, local policies require giving each program a fixed number of frames, which could be wasteful if processes get over-allocated.
