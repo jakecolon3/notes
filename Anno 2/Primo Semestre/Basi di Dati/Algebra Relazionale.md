@@ -112,6 +112,24 @@ Dove:
 
 ### $\theta$-join
 
-> $$A\theta B$$
+> $$r_1\bowtie_{A\theta B}r_2 = \sigma_{A\theta B}(r_1 \times r_2)$$
+> (Dove $\theta$ è un'operatore di confronto, e $A, B$ sono attributi dello stesso dominio della prima e seconda relazione rispettivamente.)
 
 Il join naturale non ha senso se gli attributi hanno lo stesso nome ma non lo stesso significato. Il theta-join permette di agiungere una condizione alla selezione delle tuple del prodotto cartesiano.
+
+# Quantificatore Universale
+
+I query che abbiamo visto finora hanno condizioni che (?) implicano il *quantificatore esistenziale* ($\exists$). Queste query controllano la condizione riga per riga.
+
+Query che hanno condizioni che dipendono da più righe (es. "persona con età massima") implicano invece il *quantificatore universale* ($\forall$ o $\not \exists$).
+
+Per fare query con questo tipo di condizione, possiamo eseguire la query con la condizione *negata*, e poi sottrarre il risultato dal totale.
+
+> [!WARNING]
+> Bisogna assicurarsi che l'insieme totale non includa tuple inaspettate: per esempio "clienti che hanno fatto solo ordini di almeno 100 pezzi" ha la condizione sottintesa che il risultato non deve contenere clienti che non hanno mai fatto ordini (quindi non compaiono nella tabella `ordini`, e che saranno quindi mantenuti dopo la sottrazione)
+
+# Condizioni ricorsive
+
+Se una relazione ha un'associazione con sè stessa, come facciamo query in base a quella relazione? Possiamo condizioni solo se sono nella stessa riga.
+
+Possiamo fare un $\theta$-join della tabella *con sè stessa*.

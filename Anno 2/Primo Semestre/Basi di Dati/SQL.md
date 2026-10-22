@@ -272,3 +272,62 @@ SELECT *
     SELECT DISTINCT Attributi
         FROM ...;
     ```
+
+Usando nomi di più tabelle dopo `FROM`, si possono realizzare query analoghi al prodotto cartesiano e join dell'algebra relazionale. Dato che SQL è un linguaggio dichiarativo, è il DBMS che ottimizza l'interrogazione; non dobbiamo preoccuparci dell'ordine di esecuzione.
+
+Esempio di prodotto cartesiano:
+```sql
+-- "padri di persone con reddito > 20"
+CREATE TABLE Persona(
+    Nome STRING PRIMARY KEY,
+    Età INT,
+    Reddito INT
+);
+CREATE TABLE Paternità(
+    Padre STRING REFERENCES Persona,
+    Figlio STRING FOREIGN KEY
+);
+
+SELECT DISTINCT Paternità.Padre
+    FROM Persone, Paternità -- prodotto cartesiano
+    WHERE Persone.Reddito > 20;
+```
+
+Però questo query è sbagliato: ci serve un join e non un prodotto cartesiano.
+
+Per fare un join, dobbiamo aggiungere degli argomenti a `WHERE`:
+```sql
+SELECT DISTINCT Paternità.Padre
+    FROM Persone, Paternità
+    WHERE Figlio == Nome AND Persone.Reddito > 20; -- si può omettere la tabella di provenienza dell'attributo se le tabelle non hanno attributi con lo stesso nome
+```
+
+Si può anche usare la stessa tabella più volte nello stesso query se la si ridenomina:
+```sql
+SELECT F.Nome, F.Reddito, P.Reddito
+    FROM Persone P, Persone F
+    WHERE ...;
+```
+
+Per ridenominare gli attributi nella tabella risultante, si usa `AS`:
+```sql
+SELECT Figlio, F.Reddito as Reddito, P.Reddito as RedditoPadre
+    FROM Persone P, Paternità, Persone F
+    WHERE ...;
+```
+
+Alcune implementazioni di SQL permettono di esplicitare il join:
+```sql
+SELECT Nome, Reddito, Padre
+    FROM Persone JOIN Paternità ON Paternità.Figlio = Nome
+```
+Dove `ON <cond>` indica la condizione.
+
+### Ordinamento
+
+Si può aggiungere la clausola `ORDER BY <attr>` per ordinare la tabella risultante:
+```sql
+SELECT Nome, Reddito
+    FROM Persone
+    ORDER BY Nome;
+```
