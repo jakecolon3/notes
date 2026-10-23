@@ -92,7 +92,7 @@ Per ora abbiamo visto solo operazioni su tabelle dello stesso tipo. Vediamo ora 
 
 Il prodotto cartesiano costruisce una relazione contenente le tuple che consistono delle tuple della prima seguite dalle tuple della seconda. (ogni tupla di una concatenata ad ogni tupla dell'altra)
 
-Quindi $r_1\time r_2$ produce elementi del tipo $(x_1,y_1,...,z_1,x_2,y_2,...)$, dove gli $x_1$ provengono da $r_1$ e gli $x_2$ da $r_2$
+Quindi $r_1\times r_2$ produce elementi del tipo $(x_1,y_1,...,z_1,x_2,y_2,...)$, dove gli $x_1$ provengono da $r_1$ e gli $x_2$ da $r_2$
 
 Però c'è un problema se entrambe le relazioni hanno attributi con lo stesso nome. Per risolvere si possono rinominare i nomi degli attributi.
 
