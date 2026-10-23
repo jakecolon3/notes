@@ -31,3 +31,38 @@ Per scrivere il valore iniziale di un circuito bistabile potremmo rimpiazzare i 
 ![Cosa fanno i segnali di un SR latch](./images/sr-latch-signals.png)
 
 Se entrambi gli input di un SR sono 0 allora il circuito mantiene il valore precedente. Se invece sono entrambi 1 si ha $Q = \bar Q = 0$ (questa condizione non ci interessa, in genere si evita di fornire questo input ad un latch SR).
+
+Quando si ha $S = R = 0$ si dice che il latch è in "condizione di old", e si ha $Q = Q_{\text{prev}}$.
+
+![Tavola di verità di un latch SR](./images/sr-truth-table.png)
+![Rappresentazione in un circuito di un latch SR](./images/sr-latch-symbol.png)
+
+## D Latch
+
+Un *data latch* ha due ingressi: $CLK$ e $D$.
+
+Questo circuito ha valore $D$ quando $CLK=1$, e $D_{\text{prev}}$ quando $CLK=0$.
+
+![Rappresentazione di un D latch](./images/d-latch-symbol.png)
+
+Dato che $CLK$ è un segnale periodico, questo componente permette di *sincronizzare* un circuito.
+
+Si può costruire un D latch a partire da un latch SR:
+![D latch da latch SR](./images/d-sr-latch.png)
+
+## D Flip-Flop
+
+![D flip flop](./images/d-flip-flop-symbol.png)
+
+Un *D flip-flop* ha come ingressi $CLK$ e $D$. Questo componente *campiona il valore di $D$ quando $CLK$ passa da 0 a 1*.
+
+Per realizzarlo possiamo usare 2 D latch:
+![Implementazione D flip-flop](./images/d-flip-flop-internals.png)
+
+Più flip-flop in parallelo sono compattati:
+![4-bit flip-flop](./images/multi-bit-flip-flop.png)
+
+I veri flip-flop hanno anche un ingresso di enable ed un ingresso di reset:
+![Flip-flop con enable](./images/flip-flop-enable.png)
+
+Questi flip-flop "ascoltano" il clock solo se $E=1$, e sono $0$ se $R=1$.
