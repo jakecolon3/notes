@@ -65,4 +65,75 @@ Più flip-flop in parallelo sono compattati:
 I veri flip-flop hanno anche un ingresso di enable ed un ingresso di reset:
 ![Flip-flop con enable](./images/flip-flop-enable.png)
 
-Questi flip-flop "ascoltano" il clock solo se $E=1$, e sono $0$ se $R=1$.
+Questi flip-flop "ascoltano" il clock solo se $E=1$ (altrimenti mantengono il valore precedente), e sono $0$ se $R=1$.
+
+![Flip-flop con enable](./images/flip-flop-enable.png)
+
+![Flip-flop con reset](./images/flip-flop-reset.png)
+
+![Flip-flop con set](./images/flip-flop-set.png)
+
+## Timing
+
+Le porte logiche hanno un certo ritardo tra l'input e l'output.
+
+Questo ci permette di realizzare dei clock:
+![Clock con NOT](./images/not-clock.png)
+*Clock realizzato con 3 NOT*.
+
+# Circuiti sequenziali sincroni
+
+Nei circuiti sequenziali *sincroni*, si inseriscono dei *registri* nei percorsi ciclici che contengono lo *stato* del sistema. Questo stato cambia sul fronte del clock, e il sistema è *sincronizzato* in base al clock.
+
+Un circuito sequenziale sincrono segue alcune regole:
+- Ogni elemento è o un registro (flip-flop) o un circuito combinatorio
+- Almeno un elemento è un registro
+- Ogni registro riceve lo stesso segnale di clock
+- Tutti i percorsi ciclici contengono almeno un registro
+
+## Finite State Machine (FSM)
+
+Una *finite state machine* (macchina a stati finiti) contiene una serie di registri che memorizzano lo stato, un circuito combinatorio che calcola lo stato *futuro* in base allo stato attuale e gli input, ed un circuito combinatorio che calcola l'output in base allo stato presente e gli input\*.
+
+![Componenti di una FSM](./images/finite-state-machine-elements.png)
+*Componenti di una FSM. "CL" sta per "combinational logic"*.
+
+\*Ci sono 2 tipi di FSM:
+- Macchina di Moore
+    Output dipende solo dallo stato presente
+- Macchina di Mealy
+    Output dipende anche dagli input
+
+![Tipi di FSM](./images/fsm-types.png)
+*Differenza tra macchine di Moore e Mealy*.
+
+### Diagramma di Transizione di Stati Finiti
+
+Per visualizzare gli stati di una FSM usiamo un diagramma dove ogni stato è rappresentato da un cerchio, e i passaggi tra gli stati sono rappresentati da frecce:
+![Quel diagramma](./images/diagramma-stati-finiti.png)
+*Diagramma di transizione di una macchina di Moore*.
+
+![Diagramma di transizione con macchina di Mealy](./images/mealy-state-transition.png)
+*Diagramma di transizione di una macchina di Mealy. Le macchine di Mealy hanno sempre lo stesso numero o meno stati delle macchine di Moore*.
+
+Per indicare gli input sulle transizioni si può anche usare una notazione con tanti "bit" quanti gli input, dove ogni "bit" può essere $-$ (don't care), $0$ o $1$.
+
+Questo diagramma si può anche rappresentare con una tabella:
+![Tabella di transizione](./images/fsm-transition-table.png)
+
+Per memorizzare gli stati dobbiamo usare dei flip-flop. Ci sono 2 codifiche principali per memorizzare gli stati di una FSM: binaria e one-hot. Seguendo l'esempio, con la codifica binaria servono 2 bit:
+![Tabella codificata in binario](./images/transition-table-binary-encoding.png)
+*Codifica binaria. $S'_n$ indica l'$n$-esimo bit della codifica. Le espressioni booleane rappresentano la logica per lo stato futuro*.
+
+Oltre agli stati, usiamo una tabella anche per rappresentare gli output:
+![Tabella degli output di una FSM](./images/fsm-output-table.png)
+*Tabella di output. Come prima, la codifica è scelta arbitrariamente.*
+
+![Diagramma di timing](./images/fsm-timing-diagram.png)
+*Diagramma di timing di questa FSM*.
+
+Usare una codifica one-hot invece che binaria incrementa il numero di bit necessari per memorizzare lo stato, ma rende la logica di output molto più semplice.
+
+> [!NOTE]
+> Le macchine di Mealy richiedono lo stesso numero o meno stati delle macchine di Moore, ma sono asincrone:
+> ![Diagramma di timing di Mealy v.s. Moore](./images/moore-vs-mealy-timing.png)
