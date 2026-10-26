@@ -331,3 +331,142 @@ SELECT Nome, Reddito
     FROM Persone
     ORDER BY Nome;
 ```
+
+## Comandi avanzati
+
+In SQL sono disponibili alcuni comandi di interrogazione che non esistono in algebra relazionale.
+
+### Operatori aggregati
+
+La clausola `WHERE` accetta delle espressioni che operano su *insiemi* di tuple:
+
+#### `count()`
+- `count(*)`
+    Conta il numero di righe della tabella. Esempio:
+    ```sql
+    SELECT count(*) as NumFigli
+        FROM Paternità
+        WHERE Padre = "Franco";
+    -- il risultato è una tabella con 1 riga contenente il numero di righe della tabella
+    ```
+- `count(<attr>)`
+    Conta il numero di tuple in cui \<attr\> non è nullo
+- `count(DISTINCT <attr>)`
+    Come sopra ma conta solo valori diversi
+
+#### `sum(), avg(), max(), min()`
+
+Si applicano su attributi numerici; effettuano l'operazione specificata.
+
+Esempio:
+```sql
+SELECT avg(Reddito)
+    FROM Persone JOIN Paternità ON Nome = Figlio
+    WHERE Padre = "Franco";
+```
+
+Questi operatori ignorano valori nulli.
+
+#### `GROUP BY`
+
+`GROUP BY` crea raggruppamenti utilizzabili dagli altri operatori aggregati:
+```sql
+SELECT Padre, count(*) AS NumFigli
+    FROM Paternità
+    GROUP BY Padre;
+-- crea una tabella con attributi "Padre" e "NumFigli" contenente una riga per padre.
+-- praticamente separa Paternità in tante tabelle quanti padri distinti ci sono (la partiziona) e conta i figli in ognuna di quelle tabelle
+```
+
+Quindi l'ordine di operazioni è:
+1. Esegui il query con eventuali condizioni `WHERE`, ignorando gli operatori aggregati
+2. Raggruppa
+3. Applica l'operatore aggregato a ciascun gruppo
+
+Si possono anche aggiungere condizioni ai raggruppamenti con `HAVING`:
+```sql
+SELECT Padre, avg(F.reddito)
+    FROM Persone F JOIN Paternità ON Figlio = Nome
+    GROUP BY Padre
+    HAVING avg(F.reddito) > 25;
+-- filtra il raggruppamento a solo i gruppi che soddisfano la condizione
+```
+
+![Riassunto delle operazioni consentite con `SELECT`](./images/select-riassunto.png)
+*Operazioni possibili con `SELECT`*.
+
+## Operazioni insiemistiche
+
+Questi operatori si applicano tra tabelle [union compatibili](<./Algebra Relazionale.md#Unione>) e non considerano duplicati (se non si usa `ALL`)
+
+### `UNION`
+
+Crea una tabella con tutte le tuple della prima query e tutte le tuple della seconda query:
+```sql
+SELECT Padre
+    FROM Paternità
+UNION
+SELECT Madre
+    FROM Maternità;
+-- tabella con tutti i padri e tutte le madri
+```
+
+### `EXCEPT`
+
+Equivalente alla differenza insiemistica:
+```sql
+SELECT Nome
+    FROM Impiegato
+EXCEPT
+SELECT Cognome AS Nome -- union compatibilità
+    FROM Impiegato;
+-- tutti i nomi che nono sono anche cognomi di qualcuno
+```
+
+### `INTERSECT`
+
+Intersezione insiemistica:
+```sql
+SELECT NOME
+    FROM Impiegato
+INTERSECT
+SELECT Cognome AS Nome
+    FROM Impiegato;
+-- solo i nomi che sono anche cognomi di qualcuno
+```
+
+### Query annidati
+
+Si possono usare i risultati di altre interrogazioni come condizioni di un'interrogazione:
+```sql
+SELECT Nome, Reddito
+    FROM Persone
+    WHERE Nome = (SELECT Padre -- questo query produce una tabella con 1 riga
+        FROM Paternità
+        WHERE Figlio = "Franco");
+-- equivalente a:
+SELECT Nome, Reddito
+    FROM Persone, Paternità
+    WHERE Nome = Padre AND Figlio = "Franco"
+```
+
+I query annidati non possono contenere operazioni insiemistiche.
+
+Se il risultato di un query annidato ha più di una riga, si devono usare gli operatori `= ANY/IN` o `<> ALL/NOT IN`:
+```sql
+SELECT Nome, Reddito
+    FROM Persone
+    WHERE Nome IN (SELECT Padre -- <-
+        FROM Paternità
+        WHERE Figlio = ANY (SELECT Nome -- = ANY -> uguale ad almeno una riga == `IN`
+            FROM Persone
+            WHERE Reddito > 20)
+        );
+-- equivalente
+SELECT DISTINCT P.Nome, P.Reddito
+    FROM Persone P, Paternità, Persone F
+    WHERE P.Nome = Padre AND Figlio = F.Nome AND F.Reddito > 20;
+```
+
+> [!WARNING]
+> Le variabili definite nelle query nidificate sono visibili solo a blocchi più interni del blocco in cui sono state definite.
