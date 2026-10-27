@@ -1,0 +1,162 @@
+/*
+Esercizio 4 - Somme con i processi
+
+Completa solo esegui_figlio. Il main crea gia' 5 figli con fork e li
+aspetta con waitpid. Ogni figlio chiama la funzione tre volte, una per
+matrice. m e' la matrice corrente, r e c sono le sue dimensioni.
+
+A ogni chiamata, il figlio con indice f_id deve:
+- sommare la riga f_id, se esiste;
+- sommare la colonna f_id, se esiste;
+- stampare il proprio indice e le due somme.
+Se una riga o colonna manca, saltala senza stampare nulla per quella
+somma. Se mancano entrambe, non stampare nulla per quella matrice.
+
+Gli indici partono da zero: f_id e' sia l'indice della riga sia quello
+della colonna da sommare. Non e' il PID restituito da fork.
+
+Tre esempi per capire cosa deve fare il figlio:
+
+- Matrice 5x5, f_id = 2: somma e stampa la riga 2 e la colonna 2.
+- Matrice 3x4, f_id = 3: somma e stampa solo la colonna 3.
+  La riga 3 non esiste, quindi per la riga non fa nulla.
+- Matrice 2x2, f_id = 2: non esistono ne' la riga 2 ne' la colonna 2,
+  quindi non fa nulla e non stampa nulla.
+*/
+
+#define _POSIX_C_SOURCE 200809L
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <errno.h>
+
+void esegui_figlio(int f_id, const int m[], int r, int c)
+{
+    if (!m) return;
+    if (f_id < r) {
+        int somma = 0;
+        for (size_t i = 0; i < c; ++i) {
+            somma += m[c * f_id + i];
+        }
+        printf("f_id: %d; matrice %dx%d: riga %d\n", f_id, r, c, somma);
+    }
+    if (f_id < c) {
+        int somma = 0;
+        for (size_t i = 0; i < r; ++i) {
+            somma += m[c * i + f_id];
+        }
+        printf("f_id: %d; matrice %dx%d: colonna %d\n", f_id, r, c, somma);
+    }
+}
+
+void main_fn(int ordine_figli[])
+{
+    fflush(stdout); // Non duplica nei nuovi figli le stampe delle esecuzioni precedenti.
+    int m2[] = {
+        1, 2,
+        3, 4
+    };
+    int m3[] = {
+        1,  2,  3,  4,
+        5,  6,  7,  8,
+        9, 10, 11, 12
+    };
+    int m5[] = {
+         1,  2,  3,  4,  5,
+         6,  7,  8,  9, 10,
+        11, 12, 13, 14, 15,
+        16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25
+    };
+
+    // Il codice dei processi e' gia' pronto: completa soltanto la funzione sopra.
+    int pid_figli[5]; // Collega ogni f_id al PID assegnato dal sistema.
+
+    for (int f_id = 0; f_id < 5; f_id++) {
+        // fork crea un processo figlio: padre e figlio continuano da questa chiamata.
+        // Nel figlio pid vale 0; nel padre contiene il PID (identificativo) del figlio.
+        // Se pid vale -1, la creazione e' fallita. f_id e' invece il nostro indice 0..4.
+        int pid = fork(); // Crea un figlio per ogni indice da 0 a 4.
+        if (pid == -1) {
+            perror("fork");
+            exit(1);
+        }
+        if (pid == 0) { // Solo il figlio entra qui.
+            // Le stampe mostrano come si alternano i figli.
+            for (int passo = 0; passo < 100; passo++) {
+                // printf("Figlio %d: passo %d\n", f_id, passo);
+                fflush(stdout); // Stampa subito: altrimenti i messaggi possono restare nel buffer e uscire a blocchi.
+            }
+            esegui_figlio(f_id, m2, 2, 2);
+            esegui_figlio(f_id, m3, 3, 4);
+            esegui_figlio(f_id, m5, 5, 5);
+            exit(0); // Termina e svuota stdout; non crea altri figli.
+        }
+        pid_figli[f_id] = pid; // Solo il padre arriva qui e memorizza il PID.
+    }
+
+    // Il padre aspetta 5 figli. -1 significa "un figlio qualsiasi",
+    // NULL ignora il codice di uscita e 0 fa aspettare finche' un figlio termina.
+    for (int posizione = 0; posizione < 5; posizione++) {
+        int pid_terminato = waitpid(-1, NULL, 0);
+        while (pid_terminato == -1 && errno == EINTR) {
+            pid_terminato = waitpid(-1, NULL, 0); // Riprova se arriva un segnale.
+        }
+        if (pid_terminato == -1) {
+            perror("waitpid");
+            exit(1);
+        }
+
+        // Cerchiamo a quale f_id corrisponde il PID restituito da waitpid.
+        for (int f_id = 0; f_id < 5; f_id++) {
+            if (pid_figli[f_id] == pid_terminato) {
+                ordine_figli[posizione] = f_id;
+                break;
+            }
+        }
+    }
+
+    // Riepilogo dei risultati: i figli possono stampare in ordine diverso.
+    printf("\nRisultati attesi (somme di riga e colonna):\n");
+    printf("Matrice 2x2:\n");
+    printf("  Figlio 0: riga = 3, colonna = 4\n");
+    printf("  Figlio 1: riga = 7, colonna = 6\n");
+    printf("  Figli 2, 3 e 4: nessuna stampa\n");
+    printf("Matrice 3x4:\n");
+    printf("  Figlio 0: riga = 10, colonna = 15\n");
+    printf("  Figlio 1: riga = 26, colonna = 18\n");
+    printf("  Figlio 2: riga = 42, colonna = 21\n");
+    printf("  Figlio 3: solo colonna = 24\n");
+    printf("  Figlio 4: nessuna stampa\n");
+    printf("Matrice 5x5:\n");
+    printf("  Figlio 0: riga = 15, colonna = 55\n");
+    printf("  Figlio 1: riga = 40, colonna = 60\n");
+    printf("  Figlio 2: riga = 65, colonna = 65\n");
+    printf("  Figlio 3: riga = 90, colonna = 70\n");
+    printf("  Figlio 4: riga = 115, colonna = 75\n");
+    // L'ordine e' gia' salvato nell'array ricevuto dal main.
+}
+
+int main(void)
+{
+    int n_trials = 1;
+    int ordini[n_trials][5]; // Una riga per ogni prova.
+
+    for (int prova = 0; prova < n_trials; prova++) {
+        main_fn(ordini[prova]);
+    }
+
+    // Stampiamo tutti gli ordini soltanto dopo l'ultima prova.
+    for (int prova = 0; prova < n_trials; prova++) {
+        printf("\nProva %d - ordine dei figli raccolti: [", prova + 1);
+        for (int i = 0; i < 5; i++) {
+            if (i > 0) {
+                printf(", ");
+            }
+            printf("%d", ordini[prova][i]);
+        }
+        printf("]\n");
+    }
+    return 0;
+}
