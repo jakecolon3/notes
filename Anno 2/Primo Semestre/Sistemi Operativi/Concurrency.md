@@ -118,3 +118,86 @@ A mutex must first be initialized via `pthread_mutex_init(*pthread_mutex_t, *att
 
 ![Safe concurrent access using a mutex](./images/corrected-concurrent-access.png)
 *Corrected example using a mutex.*
+
+## How to mutex
+
+A mutex needs to satisfy 3 conditions:
+1. Correctness
+    Only 1 thread can have the lock, and if the lock is requested while free it gets taken by the requestor
+2. Fairness
+    No thread is starved of the lock
+3. Performance
+
+The simplest implementation of a mutex is simply disabling interrupts until the lock is released, since preemption happens when the timer interrupt goes off. But this has problems:
+- Disabling/enabling interrupts is a trusted instruction
+- Interrupts will only be disabled on the core that executed the instruction
+- Loss of information about other interrupts for the duration of the lock
+
+A naive software approach is having a flag that gets set when the lock is taken.
+![Naive mutex](./images/naive-mutex.png)
+But this is not an atomic operation: the thread may be preempted between checking and setting the flag, causing multiple threads to access the critical section.
+
+We could try with other software only approaches, but they are all insufficient. We need **hardware support**, in the form of specfific *atomic instructions*.
+
+## Atomic primitives
+
+Modern hardware provides some atomic instructions that can be used to create our mutex.
+
+### Test-and-Set (`xchg` on x86)
+
+> Always write 1 to the variable and return the old value.
+
+So if the returned value is 1, the lock is held and the thread must try again. Otherwise, the lock is acquired.
+
+A busy-waiting implementation using this primitive could look like this:
+![Busy waiting "spinlock" implementation using TAS](./images/tas-spinlock-implementation.png)
+*"Spinlock" implementation; busy waits while the lock is held.*
+
+This implementation, while correct, if unfair since scheduling order decides who gets the lock, and is obviously wasteful since threads must busy wait.
+
+### Compare-and-Swap (`cmpxchg`)
+
+> Write the new value if the old value matches an expected value, otherwise do nothing. Returns success or failure
+
+This primitive is a more general version of TAS, since that can be derived from CAS.
+
+CAS can modify a variable atomically arbitrarily, instead of just flipping it.
+
+Implementing a mutex with this primitive still doesn't fix the unfairness and performance problems.
+
+### Fetch-and-Add (`lock xadd`)
+
+> Add a value and return the old value
+
+To resolve the unfairness problem, we can assign each attempted lock a number and serve the threads in order of arrival.
+
+In practice, every lock call gets a *ticket*, computed by calling FAA on a shared `ticket` variable, incrementing it by 1. Then the thread waits until another shared `turn` variable, increased when unlock is called, is equal to the ticket.
+![Ticket lock](./images/ticket-lock-implementation.png)
+This approach emulates a FIFO queue, achieving fairness, but still requires busy waiting.
+
+## Sleeping locks
+
+With ticket locks we achieved fairness. Now let's see how we can create a lock that does not necessitate busy waiting.
+
+To achieve this, instead of busy looping on a held lock, we can sleep until the lock is released.
+
+This requires way less CPU while waiting for the lock (just the overhead of going to sleep), but also adds overhead (cost of waking up) to acquiring the lock. If the critical section is short, a spinlock may be worth over a sleeping lock.
+
+> [!NOTE]
+> A thread going from executing to waiting for a lock is called *parking* the thread. A thread being woken up to acquire the lock is *unparked*.
+
+In practice, this means that mutex structs must also, in addition to whether the lock is held or free, hold the queue of threads waiting to acquire the lock, and also a guard that is accessed atomically before checking the other mutex fields.
+
+![Mutex fields](./images/mutex-struct-fields.png)
+
+A lock and unlock implementation could look like this:
+![Implementation of mutex lock and unlock](./images/mutex-lock-unlock-implementation.png)
+*`setpark()` is necessary since a thread may be preempted between releasing the guard and parking, leading to losing the wakeup signal if the lock is released while the thread is waiting. `park()` is implemented to do nothing if the thread is unparked between `setpark()` and `park()`.
+
+### `futex`
+
+Linux has a special "fast" mutex called *futex*, which avoids syscalls if the lock is free.
+
+### Two-phase locks
+
+To mitigate the spinlock/sleep lock traedoff, we can use a mutex with 2 phases: there is first a short busy-waiting phase before the thread parks, which allows lower overhead if the critical section is short and the thread acquires the lock quickly, while still saving CPU time on long critical sections.
