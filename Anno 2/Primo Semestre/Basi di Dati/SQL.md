@@ -196,10 +196,6 @@ Al contrario delle tabelle create da `SELECT`, le viste sono automaticamente agg
 
 Le viste sono interrogabili esattamente come le tabelle normali.
 
-# DML
-
-Un *Data Manipulation Language* serve a manipolare i *dati* all'interno di una base senza modificarne lo schema.
-
 # DQL
 
 Un *Data Query Lanugage* è utilizzato per estrarre informazioni da una base di dati.
@@ -365,6 +361,9 @@ SELECT avg(Reddito)
     WHERE Padre = "Franco";
 ```
 
+> [!WARNING]
+> Gli operatori aggregati non si possono usare con la clausola `WHERE`, bisogna usare una query annidata con `WHERE Colonna = (SELECT <operatore>...)`
+
 Questi operatori ignorano valori nulli.
 
 #### `GROUP BY`
@@ -470,3 +469,154 @@ SELECT DISTINCT P.Nome, P.Reddito
 
 > [!WARNING]
 > Le variabili definite nelle query nidificate sono visibili solo a blocchi più interni del blocco in cui sono state definite.
+
+### `EXISTS`
+
+La clausola `EXISTS` effettua la [quantificazione esistenziale](<./Algebra Relazionale.md>), permettendoci di controllare se una condizione è verificata per qualsiasi dei valori di una tabella.
+
+```sql
+-- EXISTS è una condizione che richiede che l'espressione controllata abbia almeno 1 riga
+SELECT *
+FROM Persone
+WHERE EXISTS (
+    SELECT *
+    FROM Paternità
+    WHERE Padre = Persone.Nome
+) OR EXISTS (
+    SELECT *
+    FROM Maternità
+    WHERE Madre = Persone.Nome
+);
+-- trova tutte le persone che hanno lo stesso nome di una madre o di un padre
+-- equivalente a:
+SELECT *
+FROM Persone
+WHERE 1 <= (
+    SELECT count(*)
+    FROM Paternità
+    WHERE Padre = Persone.Nome
+) OR 1 <= (
+    SELECT count(*)
+    FROM Maternità
+    WHERE Madre = Persone.Nome
+);
+```
+
+> [!NOTE]
+> Se il risultato della query annidata non dipende dalla riga della query esterna, non è ricalcolato per ogni riga (es. (`SELECT max(<col>)...`).
+> Una query che dipende dall'esterno è detta *subordinata*, altrimenti è detta *coordinata*.
+
+# DML
+
+Un *Data Manipulation Language* serve a manipolare i *dati* all'interno di una base senza modificarne lo schema.
+
+## `INSERT`
+
+Sintassi:
+> ```sql
+> INSERT INTO Tabella (Attributi)
+>    VALUES(Valori);
+> ```
+
+Questo comando inserisce una riga composta dalle colonne specificate in `Attributi` con i valori dati, associati 1-1 in base all'ordine. Inserisce valori di default per colonne non specificate (possibilmente causando errori se sono violati vincoli di non nullità).
+
+Si possono anche omettere gli attributi:
+```sql
+INSERT INTO Tabella VALUES(Valori);
+-- associa i valori alle colonne in base all'ordine di definizione della tabella
+```
+
+Si può inserire il risultato di una query:
+```sql
+INSERT INTO Tabella -- (Attributi)
+    SELECT ...;
+-- inserisce ogni riga ottenuta dalla query usando le colonne come come i `VALUES`, con le stesse considerazioni di prima
+```
+
+## `DELETE`
+
+Sintassi:
+> ```sql
+> DELETE FROM Tabella
+>    -- WHERE Condizione;
+> ```
+
+> [!WARNING]
+> Se la condizione è omessa la tabella *viene svuotata*.
+
+## `UPDATE`
+
+Sintassi:
+```sql
+UPDATE Tabella
+SET Attributo = < -- uno di:
+    Espressione|
+    SELECT ...|
+    NULL|
+    DEFAULT
+> -- WHERE Condizione
+-- se la condizione è omessa tutte le righe sono modificate
+```
+
+# DCL
+
+Una *data control language* definisce chi può accedere ai dati e come.
+
+In SQL, è possibile imporre vincoli di accesso a intere tabelle, ma anche a singole colonne o righe etc.
+
+## Privilegi
+
+Un privilegio è caratterizzato da:
+- La risorsa a cui si applica
+- L'utente che riguarda
+- L'utente che concede accesso
+- L'azione permessa
+- Se l'utente può trasmettere il privilegio
+
+I privilegi di SQL sono:
+- `insert`
+    Aggiungere righe
+- `update`
+    Aggiornare righe
+- `delete`
+    Rimuovere righe
+- `select`
+    Lettura
+- `references`
+    Definizione di vincoli di integrità
+- `usage`
+    Utilizzo di qualcosa (tipo un dominio)
+
+## `GRANT` e `REVOKE`
+
+Concedere privilegi:
+> ```sql
+> grant Privilegi on Risorsa to Utenti
+> -- alternativamente si può usare `GRANT all privileges`
+> ```
+
+Rimuovere privilegi:
+> ```sql
+> revoke Privilegio on Risorsa from Utenti
+> -- si può aggiungere `restrict` o `cascade` per mantenere o rimuovere i privilegi trasmessi dall'utente
+> ```
+
+# Transazioni
+
+Le operazioni (*transazioni*) su una basi di dati devono garantire alcune proprietà per il corretto funzionamento della base:
+- Atomicità
+    Una sequenza di operazioni viene eseguita o per intero o per niente
+- Consistenza
+    Al termine dell'esecuzione di un'operazione, i vincoli di integrità devono essere soddisfatti. Se dopo l'esecuzione alcuni vincoli sono violati, la transazione deve essere annullata
+- Isolamento
+    L'effetto di transazioni concorrenti deve essere equivalente al risultato delle operazioni eseguite sequenzialmente
+- Durabilità
+    Avendo l'elenco di transazioni deve essere possibile tornare indietro
+
+In SQL i comandi per le transazioni sono:
+- `begin transaction`
+    Segna l'inizio della transazione, senza eseguire le istruzioni successive
+- `commit work`
+    Effettua le istruzioni eseguite dall'ultimo `begin transaction`
+- `rollback work`
+    Rifiute le istruzioni eseguite dall'ultimo `begin transaction`
