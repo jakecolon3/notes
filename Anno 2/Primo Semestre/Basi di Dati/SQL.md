@@ -196,6 +196,83 @@ Al contrario delle tabelle create da `SELECT`, le viste sono automaticamente agg
 
 Le viste sono interrogabili esattamente come le tabelle normali.
 
+## Trigger
+
+I DBMS tradizionali sono *passivi*: effettuano solo operazioni richieste direttamente dall'utente.
+
+I DBMS *attivi* (ADBMS), invece, possono reagire a degli eventi con azioni programmate. Le regole che definiscono gli eventi sono dette **regole di produzione**. Un tipo di queste regole sono i *trigger*, presenti in SQL.
+
+I trigger sono attivati automaticamente quando si verifica un evento sulla base di dati e sono verificate alcune condizioni. Questo paradigma è detto *evento-condizione-azione* (ECA).
+
+La struttura di una definizione di un trigger è:
+```
+when <evento>
+if <condizione>
+then <azione>
+```
+
+Nel caso di SQL, `evento` è una modifica (comando DML: `INSERT`, `DELETE`, `UPDATE`), `condizione` è una condizione `WHERE`, e `azione` è una sequenza di comand SQL da eseguire.
+
+DBMS diversi hanno sintassi diverse per i trigger, ma alcuni comandi sono universali.
+
+Quando un trigger si attiva, i valori della tabella target di prima dell'evento e dopo sono salvati nelle tabelle di transizione `old table` e `new table`.
+
+### Comandi per gestire i trigger
+
+Creazione:
+> ```
+> CREATE TRIGGER Nome
+> <BEFORE | AFTER> Evento ON Target
+> [REFERENCING <
+>    OLD Riga AS Variabile |
+>    NEW Riga AS Variabile |
+>    OLD Tabella AS Variabile |
+>    NEW Tabella AS Variabile |
+> >] [FOR EACH <ROW | STATEMENT>]
+> [WHEN Condizione]
+> <comandi SQL>
+> ```
+
+Eliminazione:
+> ``` sql
+> DROP TRIGGER Nome;
+> ```
+
+I possibili eventi sono:
+- `INSERT`
+- `DELETE`
+- `UPDATE`
+- `UPDATE OF`
+    `UPDATE OF Righe...` si attiva se l'aggiornamento contiene esattamente solo tutte le righe specificate
+
+Un trigger può essere attivato prima o dopo l'evento. Un trigger attivato prima non può modificare i dati della tabella
+
+Le condizioni di un trigger sono definite da una clausola `WHERE`. Il trigger sarà attivato solo se il `WHERE` restituisce `true`.
+
+Le azioni possono essere un singolo comando o una sequenza di comandi, definita in questo modo:
+```sql
+BEGIN [ATOMIC]
+    Comando1, Comando2, ...
+END
+```
+
+I trigger possono essere attivati per ogni riga della tabella modificata (`FOR EACH ROW`) o una sola volta per comando che lo attiva (`FOR EACH STATEMENT`).
+
+Con la clausola `REFERENCING` è possibile fare riferimento alle transition table (quindi specificare se si vuole il valore vecchio o nuovo), sia a livello di tabella che di singola riga.
+
+> [!NOTE]
+> Su una tabella con trigger before, trigger after, e vincoli l'ordine di esecuzione è:
+> - `BEFORE STATEMENT`
+> - `BEFORE ROW`
+> - Vincoli di integrità
+> - `AFTER ROW`
+> - Vincoli che richiedono che il comando è stato completato
+> - `AFTER STATEMENT`
+>
+> Con più trigger che sono eseguiti allo stesso step, sono eseguiti da quello definito più recentemente al più vecchio.
+
+I trigger svolgono più o meno la stessa funzione dei vincoli, ma sono più flessibili.
+
 # DQL
 
 Un *Data Query Lanugage* è utilizzato per estrarre informazioni da una base di dati.
@@ -620,3 +697,4 @@ In SQL i comandi per le transazioni sono:
     Effettua le istruzioni eseguite dall'ultimo `begin transaction`
 - `rollback work`
     Rifiute le istruzioni eseguite dall'ultimo `begin transaction`
+
