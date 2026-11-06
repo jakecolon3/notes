@@ -137,3 +137,28 @@ Usare una codifica one-hot invece che binaria incrementa il numero di bit necess
 > [!NOTE]
 > Le macchine di Mealy richiedono lo stesso numero o meno stati delle macchine di Moore, ma sono asincrone:
 > ![Diagramma di timing di Mealy v.s. Moore](./images/moore-vs-mealy-timing.png)
+> Ogni macchina di Mealy può essere adattata ritardando gli output per avere lo stesso timing della macchina di Moore equivalente.
+> Macchine di Mealy in comunicazione potrebbero violare la sincronizzazione.
+
+### Equivalenza delle macchine
+
+Per trasformare una macchina di Moore ad una macchina di Mealy, basta spostare gli output dallo stato alla transizione:
+![Passagio da Moore a Mealy](./images/passaggio-moore-mealy.png)
+Però in questo modo non è detto che la macchina di Mealy risultante sia minima.
+
+Per l'opposto, se ogni transizione ha lo stesso output allora basta spostarlo allo stato. Altrimenti, si deve aggiungere uno stato per ogni output diverso:
+![Passagio da Mealy a Moore](./images/passaggio-mealy-moore.png)
+
+Stessa cosa per le transizioni uscenti:
+![Uscite nel passagio tra Mealy a Moore](./images/mealy-moore-uscite.png)
+
+Per transizioni in loop:
+![Transizioni riflessive](./images/mealy-moore-loop.png)
+
+### Stati irraggiungibili
+
+Se il numero di stati di una FSM non è esattamente una potenza di 2 (o sempre con codifica one-hot), ci saranno degli stati *irraggiungibili* con qualsiasi ingresso.
+
+Per alcuni problemi è utile avere degli stati raggiungibili partendo dal reset, ma irraggiungibili da un "loop" principale della macchina.
+
+(Guarda esempio (a) e (b) slide ADE10)
