@@ -91,7 +91,7 @@ Un circuito sequenziale sincrono segue alcune regole:
 - Ogni registro riceve lo stesso segnale di clock
 - Tutti i percorsi ciclici contengono almeno un registro
 
-## Finite State Machine (FSM)
+# Finite State Machine (FSM)
 
 Una *finite state machine* (macchina a stati finiti) contiene una serie di registri che memorizzano lo stato, un circuito combinatorio che calcola lo stato *futuro* in base allo stato attuale e gli input, ed un circuito combinatorio che calcola l'output in base allo stato presente e gli input\*.
 
@@ -107,7 +107,7 @@ Una *finite state machine* (macchina a stati finiti) contiene una serie di regis
 ![Tipi di FSM](./images/fsm-types.png)
 *Differenza tra macchine di Moore e Mealy*.
 
-### Diagramma di Transizione di Stati Finiti
+## Diagramma di Transizione di Stati Finiti
 
 Per visualizzare gli stati di una FSM usiamo un diagramma dove ogni stato è rappresentato da un cerchio, e i passaggi tra gli stati sono rappresentati da frecce:
 ![Quel diagramma](./images/diagramma-stati-finiti.png)
@@ -140,7 +140,7 @@ Usare una codifica one-hot invece che binaria incrementa il numero di bit necess
 > Ogni macchina di Mealy può essere adattata ritardando gli output per avere lo stesso timing della macchina di Moore equivalente.
 > Macchine di Mealy in comunicazione potrebbero violare la sincronizzazione.
 
-### Equivalenza delle macchine
+## Equivalenza delle macchine
 
 Per trasformare una macchina di Moore ad una macchina di Mealy, basta spostare gli output dallo stato alla transizione:
 ![Passagio da Moore a Mealy](./images/passaggio-moore-mealy.png)
@@ -155,10 +155,48 @@ Stessa cosa per le transizioni uscenti:
 Per transizioni in loop:
 ![Transizioni riflessive](./images/mealy-moore-loop.png)
 
-### Stati irraggiungibili
+## Stati irraggiungibili
 
 Se il numero di stati di una FSM non è esattamente una potenza di 2 (o sempre con codifica one-hot), ci saranno degli stati *irraggiungibili* con qualsiasi ingresso.
 
 Per alcuni problemi è utile avere degli stati raggiungibili partendo dal reset, ma irraggiungibili da un "loop" principale della macchina.
 
-(Guarda esempio (a) e (b) slide ADE10)
+(Guarda esempio (a), (b), e (c) slide ADE10)
+
+## Sintesi (progettazione) di FSM
+
+Partendo da una descrizione a parole di una macchina:
+1. Identifica input e output
+2. Disegnare il diagramma di transizione di stato
+3. Tabella di transizione di stato
+4. Scegliere codifica per gli stati
+5. Per macchine di Moore, riscrivere tabella degli stati con la codifica e scrivere la tabella degli output; per macchine di Mealy riscrivere la tabella combinata degli stati e degli output con la codifica degli stati
+6. Scrivere equazioni booleane per next state logic e output logic
+7. Disegnare la schematica del circuito
+
+### Da schematica a FSM
+
+È il processo inverso...
+![Processo per ricavare una FSM dalla schematica del suo circuito](./images/schematic-to-fsm.png)
+
+# Contatori
+
+> Un contatore è un componente che aumenta ogni colpo di clock.
+
+![Simbolo di un contatore](./images/counter-symbol.png)
+
+![Implementazione di un contatore usando un sommatore](./images/counter-implementation.png)
+
+# Shift registers
+
+> Uno shift register ad ogni colpo di clock memorizzano un nuovo bit e ne dimenticano un'altro.
+
+![Simbolo e implementazione](./images/shift-register-symbol-impl.png)
+
+Questi componenti possono trasformare un segnale in serie ad un segnale in parallelo.
+
+Aggiungendo un segnale `load`, si può creare un componente che converte da serie a parallelo e vice versa (shift register con caricamento parallelo):
+![Shift register con caricamento parallelo](./images/shift-register-parallel-load.png)
+
+Questo componente è utilizzato nello standard USB per trasmettere dei dati ricevuti in parallelo in serie:
+![Semplificazione del trasferimento USB](./images/shifter-usb-example.png)
