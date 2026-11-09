@@ -34,4 +34,58 @@ L'insieme delle dipendenze funzionali soddisfatte in questo modo è detto *chius
 
 > Dato uno schema $R$ con insieme di dipendenze funzionali $F$, l'insieme di dipendenze funzionali soddisfatte da ogni istanza legale è detto *chiusura di $F$*, o $F^+$. Si ha inoltre $F\subseteq F^+$.
 
-Vedremo successivamente una definizione di $F^+$ che non passa per le istanze. Inoltre, con questa definizione ha grandezza esponenziale rispetto ad $F$.
+> [!NOTE]
+> $F^+$ ha grandezza esponenziale rispetto ad $F$.
+
+Vedremo successivamente una definizione di $F^+$ che non passa per le istanze.
+
+Osservazione: $X\to Y\in F^+ \iff X\to$ tutti i sottoinsiemi di $Y \in F^+$.
+
+> Con $Y\subseteq X\in R$, la dipendenza funzionale $X\to Y$ è sempre soddisfatta. Dipendenze di questo tipo sono dette *banali*.
+
+> Una *chiave* $K$ è un sottoinsieme di $R$ tale che:
+> 1. $K\to R\in F^+$ ("$K$ determina $R$" è un vincolo di $R$).
+> 2. $\not\exists K'\subseteq K \text{ t.c. } K'\to R\in F^+$ (è il sottoinsieme minimale tale che 1.).
+> Se non vale 2., $K$ si dice *superchiave* (è un soprainsieme di una chiave).
+
+## Assiomi di Armstrong
+
+Per trovare le dipendenze in $F^+$ iniziamo definendo un insieme $F^A$.
+
+> Si ha che $F\subseteq F^A$.
+> Assiomi di Armstrong:
+> 1. Se $Y\subseteq X$ allora $X\to Y\in F^A$ (Assioma della Riflessività)
+    $F^A$ contiene le dipendenze banali
+> 2. Se $X\to Y\in F^A$ allora $\forall Z\subseteq R:\ XZ\to YZ\in F^A$ (Assioma dell'Aumento)
+> 3. Se $X\to Y\in F^A$ e $Y\to Z\in F^A$ allora $X\to Z\in F^A$ (Assioma della Transitività)
+
+Potremmo poi dimostrare che $F^+ = F^A$.
+
+Ci sono altre regole che sono conseguenze degli assiomi di Armstrong (si dimostrano a partire da quelli):
+> 4. Se $X\to Y, X\to Z\in F^A$ allora $X\to YZ\in F^A$ (Regola dell'Unione)
+    Dimostrato applicando aumento e transitività ($X\to Y \Rightarrow X\to XY \Rightarrow XY\to YZ \Rightarrow X\to YZ$)
+> 5. Se $X\to Y\in F^A$ e $Z\subseteq Y$ allora $X\to Z\in F^A$ (Regola della Decomposizione)
+> 6. Se $X\to Y\in F^A$ e $WY\to Z\in F^A$ allora $WX\to Z\in F^A$ (Regola della Pseudotransitività)
+
+Osservazione:  
+$X\to Y\in F^A, Y=A_1,A_2,...,A_R \iff X\to A_1\in F^A \land X\to A_2\in F^A \land ... \land X\to A_R\in F^A$. In questo modo possiamo raggruppare le dipendenze funzionali per brevità.
+
+> La *chiusura* di un sottoinsieme di attributi $X$ rispetto ad $F: X^+_F$ o solo $X^+$ è l'insieme di attributi univocamente determinati da $X$ (eventualmente applicando gli assiomi di Armstrong):
+> $$
+X^+_F = \{A\in R\ |\ X\to A\in F^A\}
+$$
+> Nota: $A$ è ***un** attributo*, non un insieme di attributi
+
+> Lemma di Chiusura:
+> $$
+X\to Y\in F^A \iff Y\subseteq X^+$
+$$
+> ![Dimostrazione del lemma di Chiusura](./images/dimostrazione-lemma-chiusura.png)
+
+Dimostriamo ora che $F^+=F^A$. Dobbiamo dimostrare:
+1. $F^A\subseteq F^+$
+2. $F^+\subseteq F^A$
+
+> 1. Vogliamo dimostrare $X\to Y\in F^A \Rightarrow X\to Y \in F^+$. Abbiamo che $X\to Y\in F \Rightarrow X\to Y\in F^+$ (caso base). Dobbiamo fare una dimostrazione induttiva sul numero di volte che abbiamo applicato Armstrong, con 3 casi in base a quale assioma abbiamo applicato per ultimo.
+
+> 2. Vogliamo dimostrare $X\to Y\in F^+$.
