@@ -201,3 +201,96 @@ Linux has a special "fast" mutex called *futex*, which avoids syscalls if the lo
 ### Two-phase locks
 
 To mitigate the spinlock/sleep lock traedoff, we can use a mutex with 2 phases: there is first a short busy-waiting phase before the thread parks, which allows lower overhead if the critical section is short and the thread acquires the lock quickly, while still saving CPU time on long critical sections.
+
+# Thread communication
+
+Sometimes the basic atomic primitives aren't enough*, like if a thread needs to wait until another thread finished some operation before proceeding.
+
+*You could use a shared flag, but then the waiting thread needs to poll the flag, wasting CPU time.
+
+Currently, we have `pthread_join` for checking if a thread has completed, but we want something to check for arbitrary conditions.
+
+We want to be able to sleep until a certain *condition variable* becomes true, then be woken by the OS.
+
+## Condition Variable
+
+> A *condition variable* is a synchronization primitive that allows a thread to sleep until a condition is true, letting another thread signal when that condition becomes true.
+
+A condition variable has a condition, which is a predicate referring to a shared variable (in a mutex), and a queue of threads that are waiting for the condition to become true.
+
+Usage:
+- Thread calls `wait()`, sleeping until woken
+- Another thread calls `signal()`
+- The sleeping thread wakes up and checks the condition
+
+`wait()` takes 2 arguments: the condition variable (queue), and a mutex.
+
+The caller, which must be holding `m`, releases `m` and gets put to sleep in the queue (this is done atomically!), `cv`. When another thread calls `signal(cv)` the waiting thread is woken and re-acuquires `m`.
+
+The signaller wakes *one* thread on `cv`, then keeps running *while holding `m`*. The woken thread will get to run when the signaller releases `m` (and gets scheduled).
+
+> [!NOTE]
+> `wait()` must both release the lock and go to sleep *atomically*, or the signal could be lost since the waiting thread could be preempted between unlocking (and thus allowing the signalling thread to `signal`) and sleeping.
+> `pthread_cond_wait()` is the POSIX API function that does this atomic operation.
+
+![Visualization of `wait` and `signal` operation](./images/wait-threads-diagram.png)
+*Diagram showing flow of execution with a `wait`ing and `signal`ing thread.*
+
+![Pseudo-C usage](./images/pseudo-c-thread-wait.png)
+*`wait` and `signal` usage in pseudo-C.*
+
+### POSIX condition variable API
+
+POSIX API for condition variables:
+- `PTHREAD_COND_INITIALIZER` or `phtread_cond_init(*pthread_cond_t, NULL)`
+    Initialize a condition variable
+- `pthread_cond_wait(cv, mutex)`
+    Sleep on the cv, must be holding the mutex
+- `pthread_cond_signal(cv)`
+    Wake a waiting thread
+- `pthread_cond_broadcast(cv)`
+    Wake all waiting threads
+- `pthread_cond_destory(cv)`
+    Deallocate the condition variable
+
+## Signal use cases
+
+### Producer-consumer
+
+A *producer* thread generates items, putting them in a fixed-size shared buffer. A *consumer* thread takes items out of the shared buffer. Producers wait if the buffer is full, consumers wait if the buffer is empty. Only 1 thread touches the buffer at a time.
+
+![Single slot, 1 of each](./images/single-slot-single-producer-consumer.png)
+*Single slot buffer, 1 producer and cosumer. With multiple consumers we need `while`s instead of `if`s, and separate queues for producers and consumers.*
+
+For a fixed size buffer of arbitrary length, we just have to add to the buffer by wrapping around.
+![](./images/long-buffer-prod-cons-threads.png)
+![](./images/long-buffer-prod-cons-threads-2.png)
+
+Basically, there's a different condition variable for every possible state (buffer full/buffer empty) (see [example](./Concurrency/thread.c)).
+
+## Condition variable semantics
+
+There are 2 ways to design a `signal` function:
+
+- Hoare semantics
+    Signalling thread immediately gives the mutex to the waiting thread, then sleeps as soon as the waiting thread starts executing; the condition is guaranteed true when it does so
+- Mesa semantics (what the POSIX API uses)
+    The signalling thread keeps the mutex after signalling, the waiting thread could run later; the condition needs to be checked again once it starts running
+
+---
+
+Sometimes `signal()` is not enough, for example when multiple threads are waiting on a condition but for slightly different reasons, for example if they need a shared number to be in a certain range.
+
+Waking only one thread would leave it up to luck if the woken thread can actually execute. We could use many different condition variables for different ranges, but this is not ideal.
+
+The solution is `broadcast()`.
+
+## `broadcast()`
+
+`broadcast()` wakes every thread waiting on a given condition variable. Each thread then checks its condition based on the new value (sequentially), and the first thread that runs that meets the condition does so.
+
+Obviously, if the number of threads that gets woken is large, this can cause a big slowdown since all threads will be trying to get the lock.
+
+### Thread pool
+
+Maybe look at that idk
