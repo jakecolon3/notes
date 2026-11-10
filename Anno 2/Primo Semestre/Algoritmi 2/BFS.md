@@ -119,3 +119,43 @@ Dimostrazione:
 - $G$ albero $\Rightarrow T_1 = T_2$ è banale
 - $T_1 = T_2 \Rightarrow G$ è un albero:
 Uguale all'implicazione $G$ non è un albero $\Rightarrow T_1\not= T_2$. Supponiamo per assurdo che $G$ non è un albero ma $T_1 = T_2$. Allora $G$ contiene un ciclo $\Rightarrow$ esiste un arco all'indietro $yz$ in $T_2$ (DFS) $\Rightarrow\ dist_T(z, y)\geq 2$ che è in contraddizione con il fatto che $T_1$ è un albero BFS ($y$ e $z$ sono adiacenti).
+
+> Un grafo pesato è un grafo con una funzione $w: E(G)\to \mathbb{R}^+$ che assegna un peso ad ogni arco.
+> Con $P$ un cammino da $x\to y$, $dist_w(x,y)=\min w(P)=\sum_{e\in E(P)} w(e)$ (la distanza tra due nodi in un grafo pesato è il cammino con somma dei pesi dei suoi archi minima).
+> Se il grafo è diretto $dist_w(x,y)$ è il peso minimo di un cammino diretto da $x\to y$.
+
+Osservazioni:  
+- $dist_w(x,x)=0$
+- $dist_w(x,y)\geq 0$ (i pesi sono parte di $\mathbb{R}^+$)
+- $dist_w(x,y)\leq dist_w(x,z) + dist_w(z,y)$
+
+# Algoritmo di Dijkstra
+
+*Problema*:  
+Trovare la $dist_w(x,y)$ in un grafo non diretto.
+
+Se $w(e)=1\ \ \forall e\in E(g)$ basta usare il BFS.
+
+Sia $u$ il vertice di $N(x)$ (vicini di $x$) che minimizza $w(x,u)$. Allora $dist_w(x,u)=w(x,u)$ (ogni altro cammino passa per un arco con peso maggiore dato che abbiamo scelto l'arco con peso minimo).
+
+Proposizione:  
+Supponiamo di aver trovato un insieme $Z$ di vertici per cui sappiamo $dist_w(x,z)\forall z\in Z$. Se $v$ è il vertice con arco $u'v$ t.c. $v\not\in Z, u'\in Z$ e $w(u'v)+dist_w(x,u')$ è minima, allora $dist_w(x,v)=w(u'v)+dist_w(x,u')$.
+
+Dimostrazione:  
+non ho voglia guarda [slide](http://wwwusers.di.uniroma1.it/~wollan/Prog_Alg/Appunti/grafi_greedy.pdf)
+
+Con questa proposizione abbiamo un algoritmo per trovare la distanza minima di ogni vertice.
+```
+DIJKSTRA(G: grafo, u: nodo)
+    Dist: array delle distanze, inizializzato a -1
+    P: vettore dei padri, inizializzato a 0
+    Dist[u] <- 0
+    P[u] <- u
+    R <- {u} /* Insieme dei nodi la cui distanza è già stata determinata */
+    WHILE esiste un arco da R a fuori di R DO
+        Trova un arco (v, w) con v in R, w non in R per cui è minima Dist[v] + p(v, w)
+        Dist[w] <- Dist[v] + p(v, w)
+        P[w] <- v
+        R <- R ∪ {w}
+    RETURN Dist, P
+```
