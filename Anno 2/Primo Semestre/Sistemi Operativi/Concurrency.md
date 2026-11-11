@@ -294,3 +294,113 @@ Obviously, if the number of threads that gets woken is large, this can cause a b
 ### Thread pool
 
 Maybe look at that idk
+
+# Semaphores
+
+We've seen locks and condition variables as synchronization tools for mutual exclusion and ordering, respectively. We will now look at a new primitive, *semaphores*, which can be used to solve both problems.
+
+Semaphores are kind of like a box of tickets, with threads taking from and returning tickets to the box. When the box is empty threads sleep until another thread returns a ticket.
+
+The 2 actions defined on semaphores ar `wait` (take a ticket) and `post` (add a ticket).
+
+Based on the initial number of tickets (the number can change over time!), a semaphore solves a different kind of problem:
+- 1 ticket: Mutual exclusion
+    Only 1 thread can get a ticket at a time
+- 0 tickets: Ordering
+    Waiting threads get to run when another thread decides to add a ticket
+- N tickets: Resource pool
+
+> [!NOTE]
+> A thread does not need to be holding a ticket to `post`, any thread can `post` at any time.
+
+> A semaphore is an integer $S\geq 0$ (following POSIX convention) plus a wait queue, modified only via 2 atomic operations (`wait` and `post`).
+
+When a thread calls `wait` it sleeps while $S$ is 0, then decreases $S$ when it gets to run.
+
+When a thread calls `post`, it increments $S$ by 1 and wakes a sleeper (if present).
+
+## POSIX API
+
+Defined in `semaphore.h`
+
+- `sem_t`: Semaphore struct
+- `sem_init(*sem, pshared, S)`
+- `sem_wait(*sem)`: Wait
+- `sem_post(*sem)`: Post
+etc
+
+## Ordering
+
+Using a semaphore for ordering also solves the problem of signals being lost if no waiters were present, since `post` always increments $S$.
+
+## Producer-consumer
+
+To implement producer-consumer with semaphores we can use 2 semaphores, one which counts the empty slots and one that counts the filled slots. We then also use a mutex to protect the buffer and pointers to the next item to be consumed and the next slot to be filled.
+
+```c
+#define MAX 5
+
+int buffer[MAX], fill = 0, use = 0;
+
+sem_t empty, full, mutex;
+
+void init(void) {
+    sem_init(&empty, 0, MAX); // all MAX slots free
+    sem_init(&full, 0, 0); // no items yet
+    sem_init(&mutex, 0, 1); // binary: protects buffer, fill, use
+}
+
+// called while holding mutex
+void put(int v) {
+    buffer[fill] = v;
+    fill = (fill + 1) % MAX;
+}
+
+// called while holding mutex
+int get(void) {
+    int v = buffer[use];
+    use = (use + 1) % MAX;
+    return v;
+}
+
+void *producer(void *arg) {
+    for (int i = 0; i < 100; i++) {
+        sem_wait(&empty); // 1. reserve a free slot (may sleep)
+        sem_wait(&mutex); // 2. enter the critical section
+        put(i);
+        sem_post(&mutex); // 3. leave it
+        sem_post(&full); // 4. one more item
+    }
+    return NULL;
+}
+
+void *consumer(void *arg) {
+    for (int i = 0; i < 100; i++) {
+        sem_wait(&full); // reserve an item (may sleep)
+        sem_wait(&mutex);
+        int v = get();
+        sem_post(&mutex);
+        sem_post(&empty); // one more free slot
+        /* ... process v ... */
+    }
+    return NULL;
+}
+```
+
+## Dining Philosophers
+
+![Dining philosophers](./images/dining-philosophers.png)
+
+How do you get each philosopher to eat without deadlocks?
+
+The naive approach of having a lock for each fork, then having every thread lock on both forks doesn't work: every thread could lock on the left fork and then wait forever for the other one.
+
+A fix is breaking the symmetry by having at least one thread lock the forks in the opposite order. This way, the threads can never deadlock waiting for the other fork, but fairness is not guaranteed.
+
+## Zemaphore
+
+A semaphore can be implemented with a mutex, condition variable, and a value.
+
+![Zemaphore implementation](./images/zemaphore.png)
+
+This implementation is called a *zemaphore*.
