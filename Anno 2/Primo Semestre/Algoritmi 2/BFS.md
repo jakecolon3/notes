@@ -145,17 +145,69 @@ Dimostrazione:
 non ho voglia guarda [slide](http://wwwusers.di.uniroma1.it/~wollan/Prog_Alg/Appunti/grafi_greedy.pdf)
 
 Con questa proposizione abbiamo un algoritmo per trovare la distanza minima di ogni vertice.
+```python
+def dijkstra(G: Grafo, x: Nodo, w: Pesi):
+    dist = [inf] * len(G)
+    T: Tree = [0] # i cammini da x ai nodi nell'albero sono i cammini con peso minimo in G
+    dist[x] = 0
+    R = {x} # insieme
+    while R != nodi(G): # O(n)
+        min = -1
+        arco = None
+        for uv in archi(G): # O(m)
+            if u in R and v not in R: # arco uscente da R
+                if arco and dist[u] + w(uv) < min: # aggiorna il minimo
+                    min = dist[u] + w(uv)
+                    arco = uv
+        R.add(v) # aggiungi il nodo di uv che è fuori da R a R
+        dist[v] = min
+        T.add(arco)
+    return dist, T
+# complessità O(nm)
 ```
-DIJKSTRA(G: grafo, u: nodo)
-    Dist: array delle distanze, inizializzato a -1
-    P: vettore dei padri, inizializzato a 0
-    Dist[u] <- 0
-    P[u] <- u
-    R <- {u} /* Insieme dei nodi la cui distanza è già stata determinata */
-    WHILE esiste un arco da R a fuori di R DO
-        Trova un arco (v, w) con v in R, w non in R per cui è minima Dist[v] + p(v, w)
-        Dist[w] <- Dist[v] + p(v, w)
-        P[w] <- v
-        R <- R ∪ {w}
-    RETURN Dist, P
+
+Quest'algoritmo ha complessità alta, visto che controlliamo sempre ogni arco per trovare un arco uscente da $R$. Vogliamo trovare un modo per ottimizzare questa ricerca.
+
+Ogni volta che aggiungiamo un arco ad $R$, per trovare il nuovo arco minimo dobbiamo considerare gli archi uscenti dal nuovo $R$, che sono gli archi uscenti dal vecchio $R$ + gli archi uscenti dal vertice appena aggiunto. Vanno inoltre aggiornati i "valori" (distanza minima fino a quel nodo) dei nodi subito fuori $R$. (?? credo)
+
+Dato che ad ogni passo dobbiamo estrarre l'arco con peso minimo, possiamo memorizzare gli archi candidati in un heap minimo.
+
+```python
+def dijkstra(G: Grafo, x: Nodo, w: Pesi):
+    dist = [inf] * len(G)
+    dist[x] = 0
+    P: VettorePadri = [-1] * len(G)
+    P[x] = x
+    H: Heap = min_heap()
+    for xv in x.archi: # O(n*log(n)), al massimo n archi escono dalla radice a quanto pare
+        H.add(xv, chiave = w(xv))
+    for i in range(1, n): # già aggiunto x quind n-1 volte
+        uv = H.pop() # O(log(m))
+        if P[u] == -1: # il vertice uscente è quello non in P
+            new = u
+            old = v
+        else:
+            new = v
+            old = u
+        P[new] = old
+        dist[new] = dist[old] + w(uv)
+        for y ~ new: # y adiacente new; O(deg(new) * log(n)) -> O(m*log(n)) totale (fuori dal primo for)
+            if P[y] == -1: # y fuori da R
+                H.add(new,y, chiave = dist[new] + w(new,y)) # nuovo candidato
+            else:
+                H.remove(new,y) # non era il minimo quindi non ci interessa
+    return P
+# totale: O(n*log(n) + n + m*log(n)) = O((n + m)log(n))
 ```
+
+---
+
+Dato $P$ vettore dell'albero di cammini minimi di un grafo $G$ radicato in $x$ con pesi $w$, definiamo:
+- $w_1: E(G)\to \mathbb{R}^+; w_1(e)=w(e)+1$
+- $w_2: E(G)\to \mathbb{R}^+; w_2(e)=2w(e)$
+
+$P$ è il vettore dell'albero di cammini di peso minimo per $w_1$? Per $w_2$?
+
+Per $w_1$ è falso: pensa quadrato con lato 4 e altri 1.
+
+Per $w_2$ è vero perché moltiplicare il peso dei singoli archi è equivalente a moltiplicare il peso totale del cammino, quindi le relazioni tra pesi non cambiano.
