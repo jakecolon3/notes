@@ -17,7 +17,7 @@ Esempio:
 > - C'è un solo pilota di un dato volo in un dato giorno
 >   $\{\text{Codice},\text{Giorno}\}\to \text{Pilota}$
 
-> Una relazione $r$ con schema $R$ *soddisfa* la dipendenza $X\to Y$ se ogni volta che due tuple di $r$ sono uguali su $X$, sono anche uguali su $Y$ (con $X$, $Y$ insiemi di colonne). Formalmente: $\forall t_1,t_2\in r$ se $t_1[x]=t_2[x] \Rightarrow t_1[y]=t_2[y]$.
+> Una relazione $r$ con schema $R$ *soddisfa* la dipendenza $X\to Y$ se ogni volta che due tuple di $r$ sono uguali su $X$, sono anche uguali su $Y$ (con $X$, $Y$ insiemi di colonne). Formalmente: $\forall t_1,t_2\in r$, se $t_1[x]=t_2[x]$ allora $t_1[y]=t_2[y]$.
 
 Un'istanza di relazione *soddisfa* una dipendenza funzionale se non viola il vincolo espresso da essa.
 
@@ -74,11 +74,13 @@ $X\to Y\in F^A, Y=A_1,A_2,...,A_R \iff X\to A_1\in F^A \land X\to A_2\in F^A \la
 > $$
 X^+_F = \{A\in R\ |\ X\to A\in F^A\}
 $$
-> Nota: $A$ è ***un** attributo*, non un insieme di attributi
+
+> [!NOTE]
+> $A$ è _**un** attributo_, non un insieme di attributi
 
 > Lemma di Chiusura:
 > $$
-X\to Y\in F^A \iff Y\subseteq X^+$
+X\to Y\in F^A \iff Y\subseteq X^+
 $$
 > ![Dimostrazione del lemma di Chiusura](./images/dimostrazione-lemma-chiusura.png)
 
@@ -88,4 +90,58 @@ Dimostriamo ora che $F^+=F^A$. Dobbiamo dimostrare:
 
 > 1. Vogliamo dimostrare $X\to Y\in F^A \Rightarrow X\to Y \in F^+$. Abbiamo che $X\to Y\in F \Rightarrow X\to Y\in F^+$ (caso base). Dobbiamo fare una dimostrazione induttiva sul numero di volte che abbiamo applicato Armstrong, con 3 casi in base a quale assioma abbiamo applicato per ultimo.
 
-> 2. Vogliamo dimostrare $X\to Y\in F^+$.
+**Dimostrazione**:  
+Definiamo ${F^A}_i =$ insieme delle dipendenze funzionali ottenuto applicando al più $i$ volte assiomi di Armstrong. Dimostriamo ${F^A}_i\subseteq F^+$ per induzione:
+- Caso base: $i=0$
+    ${F^A}_0=F\subseteq F^+.$
+- Caso induttivo: ${F^A}_i\subseteq F^+\Rightarrow {F^A}_{i+1}\subseteq F^+$
+    Sia $X\to Y\in {F^A}_{i+1}$, $r$ un'istanza legale. $X\to Y$ può essere stato ottenuto da ${F^A}_i$ applicando:
+    - Riflessività
+        Per le condizione dell'assioma si ha che $Y\subseteq X$. Quindi $\forall t_1, t_2\in r$, se $t_1[X]=t_2[X]$ allora $t_1[Y]=t_2[Y] \Rightarrow X\to Y\in F^+.$
+    - Aumento
+        Esiste una dipendenza funzionale $V\to W\in {F^A}_i$ ed un insieme $Z\subseteq R$ tali che $X=VZ, Y=WZ$. $$
+        \begin{align}
+        \forall t_1,t_2\in r,\ t_1[X]&=t_2[X]\Rightarrow \\
+        t_1[VZ]&=t_2[VZ]\Rightarrow \\
+        t_1[V]=t_2[V]&\land t_1[Z]=t_2[Z]= \text{ Per ipotesi induttiva}\Rightarrow\\
+        t_1[W]=t_2[W]&\land t_1[Z]=t_2[Z]\Rightarrow \\
+        t_1[WZ]&=t_2[WZ]\Rightarrow \\
+        t_1[Y]&=t_2[Y]\\
+         \text{Quindi } X&\to Y\in F^+.
+        \end{align}
+        $$
+    - Transitivià
+        Esiste un $V\subseteq R$ t.c. $X\to V, V\to Y\in {F^A}_i$. Per ipotesi induttiva: $$
+        \forall t_1,t_2\in r, t_1[X]=t_2[X]\Rightarrow t_1[V]=t_2[V]\Rightarrow t_1[Y]=t_2[Y]\text{  quindi } X\to Y\in F^+.
+        $$
+
+> 2. Vogliamo dimostrare $X\to Y\in F^+\Rightarrow X\to Y\in F^A$.
+
+**Dimostrazione**:  
+Vogliamo utilizzare il lemma di chiusura: $X\to Y\in F^A\iff Y\subseteq X^+_F$. Costruiamo un'istanza legale $r$. Ci saranno degli attributi di $r\in X^+$, il resto sarà in $R-X^+$. L'istanza avrà 2 tuple $t_1$ e $t_2$, con $t_1[X^+]=t_1[R-X^+]=1$ e $t_2[X^+]=1, t_2[R-X^+]=0$. Dimostriamo che $r$ è legale.
+
+Sia $V\to W\in F$. $$
+\begin{align}
+\text{Se } t_1[V]&=t_2[V]\Rightarrow(\text{abbiamo definito $t_1$ e $t_2$ come uguali solo su $X^+$})\\
+V\subseteq X^+ &= \text{Lemma di Chiusura}\Rightarrow \\
+X\to V\in F^A &= \text{Transitività} \Rightarrow \\
+X\to &W\in F^A \Rightarrow \\
+W&\subseteq X^+\Rightarrow \\
+t_1[W]&=t_2[W].
+\end{align}
+$$
+
+Dimostrato che $t_1$ e $t_2$ sono legali:
+$$
+\begin{align}
+X&\subseteq X^+\Rightarrow \\
+t_1[X]&=t_2[X]\Rightarrow \\
+t_1[Y]&=t_2[Y]\Rightarrow \\
+Y&\subseteq X^+\Rightarrow \\
+X\to &Y\in F^A
+\end{align}
+$$
+
+---
+
+Dimostrato questo teorema, possiamo ora trovare $F^+$ calcolando $X^+_F$. Però abbiamo definito la chiusura usando $F^A$, che non vogliamo dover calcolare.
