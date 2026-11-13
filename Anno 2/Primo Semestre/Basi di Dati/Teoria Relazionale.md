@@ -145,3 +145,50 @@ $$
 ---
 
 Dimostrato questo teorema, possiamo ora trovare $F^+$ calcolando $X^+_F$. Però abbiamo definito la chiusura usando $F^A$, che non vogliamo dover calcolare.
+
+# Trovare la chiusura
+
+Dato che calcolare $F^A$ richiede tempo esponenziale, vogliamo un algoritmo che calcola la chiusura in tempo minore.
+
+Input: $R$ schema, $F$ dipendenze funzionali, $X\subseteq R$. Output: $X^+_F$.
+```
+Z := X;
+S := {A | Y -> V in F and A in D and Y subset Z};
+while not S subset Z
+    Z := Z union S;
+    S := {A | Y -> V in F and A in V and Y subset Z};
+return Z;
+```
+
+**Dimostrazione**:  
+Siano $Z_0,...,Z_n$ gli insiemi $Z$ all'$n$-esima iterazione. Sia ha:
+$$
+Z_0=X; Z_1 = Z_0\cup S_0; ...; Z_n=Z_{n-1}\cup S_n
+$$
+Con $Z_f, S_f$ gli insiemi all'ultima iterazione (esistono perché gli attributi di $R$ sono finiti), si ha anche $S_f\subseteq Z_f$ (condivione del while). Dimostriamo che $Z_f=X^+_F$:
+- $Z_f\subseteq X^+_F$ per induzione ($Z_i\subseteq X^+_F\ \ \forall i\leq f$)
+    - Caso base
+        $Z_0=X\subseteq X^+_F$ ok
+    - Caso induttivo ($Z_i\subseteq X^+_F\Rightarrow Z_{i+1}\subseteq X^+_F$)
+        $A\in Z_{i+1} = Z_i\cup S_i$ quindi
+        1. $A\in Z_i\subseteq X^+_F$ ok
+        2. $$
+        A\in S_i\Rightarrow \exists Y\to V\in F \text{ t.c. } A\in V\land Y\subseteq Z_i\Rightarrow \\
+        Y\subseteq X^+_F\Rightarrow X\to Y\in F^A \Rightarrow \\
+        X\to V\in F^A\Rightarrow V\subseteq X^+_F\Rightarrow \\
+        A\in X^+_F
+        $$
+- $X^+_F\subseteq Z_f$
+    Sia $A\in X^+_F$. $X\to A\in F^A\Rightarrow X\to A\in F^+$. Costruiamo una $r$ con due tuple $t_1,t_2$ tali che $t_1[Z_f]=t_2[Z_f]\land t_1[R-Z_f]\not=t_2[R-Z_f]$. Dimostriamo che $r$ è legale. $$
+    \text{Sia $Y\to V\in F$. Allora $t_1[Y]=t_2[Y]\Rightarrow Y\subseteq Z_f$} \Rightarrow \\
+    \forall A\in V: A\in S_f \Rightarrow \\
+    V\subseteq S_f\subseteq Z_f\Rightarrow \\
+    t_1[V]=t_2[V] \text{ CVD.}
+    $$
+    Ora dato che $r$ è legale $\Rightarrow r$ sodddisfa $X\to A$. $$
+    X=Z_0\in Z_f\Rightarrow t_1[X]=t_2[X]\Rightarrow t_1[A]=t_2[A]\Rightarrow A\in Z_f\Rightarrow X^+\subseteq Z_f \text{ CVD}.
+    $$
+
+# Trovare chiavi
+
+boh

@@ -53,3 +53,45 @@ Questo riscrivere rende la DRAM più lenta, ma ha costo molto minore rispetto al
 ## Scrittura
 
 Per scrivere sulla SRAM, basta imporre un valore "in modo più forte" sulla bitline. Per imporre 0, si impone 1 sulla bitline negata.
+
+---
+
+> [!NOTE]
+> In pratica, la memoria non è implementata come abbiamo visto dato che risulterebbe un oggetto stretto e lunghissimo. Invece, si utilizza un indirizzazione a righe e colonne: l'indirizzo seleziona una wordline, e poi ci sono dei mux che selezionano una "colonna", corrispondente alla parola richiesta.
+
+## Operazione DRAM
+
+Ci sono una serie di comandi da mandare alla DRAM per scrivere/leggere:
+- ACT
+    Si attiva l'intera riga
+- RD / WR
+    La colonna è selezionata
+- PRE
+    La riga è riscritta (la DRAM è volatile)
+
+![Comandi DRAM](./images/dram-operation.png)
+
+Leggere indirizzi sulla stessa riga è più veloce dato che non va chiusa e riattivata la riga
+
+Le RAM sono organizzate in *banchi*, in modo da poter parallelizzare l'accesso
+
+## DDR
+
+Le RAM moderne sono sincronizzate, e lavorano su entrambi i fronti del clock. Questo tipo di RAM è detta *double data rate* (DDR).
+
+Prefetch??
+
+Sistemi come i server hanno anche un ulteriore dimensione: ci sono diversi bus (canali) che parallelizzano ulteriormente l'accesso ai dati
+
+## High Bandwith Memory
+
+Sistemi avanzati utilizzano un'altro tipo di RAM:
+![High Bandwith Memory](./images/hbm-memory.png)
+
+# Memoria Multi Porta
+
+La memoria multi porta può accedere a più dati *contemporaneamente* tramite più porte di input/output.
+
+![Memoria multi porta](./images/memoria-multi-porta.png)
+
+Ogni porta condivide la stessa cella di memoria, ma avrà più bitline per concedere accesso parallelo.
