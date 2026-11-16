@@ -192,3 +192,74 @@ Con $Z_f, S_f$ gli insiemi all'ultima iterazione (esistono perché gli attributi
 # Trovare chiavi
 
 boh
+
+# 3NF
+
+Per progettare uno schema relazionale "corretto", possiamo o
+- fare uno schema concettuale e tradurlo (quello che abbiamo già fatto), o
+- partire da uno schema già fatto e completarlo.
+
+Se vogliamo partire da uno schema già fatto, però, dobbiamo prima capire se lo schema è corretto o no.
+
+## Correttezza di una base di dati
+
+Vediamo delle basi di dati con dei problemi:
+- Base con tutto in una relazione
+    ![Base ridondante](./images/base-ridondante.png)
+    Causa:
+    - Spreco di memoria/storage
+    - Rende difficile aggiornare i dati (Anomalia di aggiornamento)
+    - Dati incompleti potrebbero essere impossibili da inserire senza valori nulli (Anomalia di inserimento)
+    - Eliminare una riga potrebbe eliminare più informazioni del voluto (Anomalia di cancellazione)
+- Base con schemi che rappresentano entità e relazioni
+    ![Base ridondante](./images/base-comunque-ridondante.png)
+    - Possibili ridondanze (es. comune identifica la sua provincia); causa gli stessi problemi della base di sopra
+
+> Uno schema di dati è *buono* se non presenta:
+> - Ridondanze
+> - Anomalie di aggiornamento, inserimento e cancellazione
+
+Nelle basi che abbiamo visto, il problema era che stavamo usando un'unica relazione per rappresentare concetti **distinti**. I problemi sono eliminati quando ogni concetto è rappresentato da uno schema separato.
+
+Dobbiamo quindi sviluppare un processo per arrivare ad una base "buona" partendo da una base qualsiasi.
+
+Abbiamo già visto qualcosa che rappresenta un "concetto" in algebra relazionale: *le chiavi*.
+
+---
+
+Consideriamo questa base di dati "buona":
+![Base "buona"](./images/base-buona.png)
+
+Guardiamo ogni relazione:
+- Studente
+    In questa relazione, abbiamo che sia `Matricola` che `CF` determinano `Studente`. Sono entrambi chiavi.
+    
+    Le uniche dipendenze funzionali di questo schema "interessanti" (non banali) sono del tipo $K\to X$, dove $K$ contiene *una* chiave. Questa è una condizione per la 3NF.
+- Esame
+    L'unica chiave è `Matr C#`. Non ci sono altre relazioni non banali.
+
+## Definizione
+
+> Dati uno schema di relazione $R$ ed un insieme di dipendenze funzionali $F$ su $R$, $R$ *è in 3NF* se $$
+\begin{align}
+&\forall X\to A\in F^+,A\not\in X \text{ (Dipendenza non banale)}: \\
+&- A\text{ appartiene ad una chiave (è }\textbf{primo}\text{) oppure} \\
+&- X \text{ contiene una chiave (è una superchiave)}
+\end{align}
+$$
+
+Se **una sola** dipendenza di $F^+$ viola questa definizione lo schema non è in 3NF.
+
+Non vanno considerate le dipendenze banali perché sono presenti anche in schemi "buoni" (puoi prendere un attributo $B$ qualsiasi non chiave o superchiave e hai che $B\to B$ che non rispetta le condizioni di 3NF).
+
+Controllando la base di prima sotto queste condizioni, vediamo che è in 3NF:
+![La base di prima è in 3NF](./images/base-buona-3nf.png)
+
+Inoltre, le dipendenze che causano la violazione della 3NF sono proprio le relazioni che causano anomalie.
+
+> [!NOTE]
+> C'è una definizione equivalente di 3NF che fa uso delle dipendenze *transitive* (dipendenze che permettono l'applicazione dell'assioma di transitività (quella a destra: con $A\to B, B\to C$ la transitiva è $B\to C$)) e *parziali* (dipendenze in cui il determinato dipende da un sottoinsieme di una chiave): se uno schema non contiene dipendenze transitive o parziali è in 3NF.
+
+---
+
+Abbiamo scoperto come capire se uno schema buono. Dobbiamo però ancora capire come decomporlo in schemi che rispettano la 3NF.
