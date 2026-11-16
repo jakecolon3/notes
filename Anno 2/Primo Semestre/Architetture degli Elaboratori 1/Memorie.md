@@ -95,3 +95,16 @@ La memoria multi porta può accedere a più dati *contemporaneamente* tramite pi
 ![Memoria multi porta](./images/memoria-multi-porta.png)
 
 Ogni porta condivide la stessa cella di memoria, ma avrà più bitline per concedere accesso parallelo.
+
+# Logica con memorie
+
+Le ROM sono simili alle DRAM, ma hanno collegamenti statici tra bitline e wordline:
+![Diagramma di una ROM](./images/rom-diagram.png)
+*I pallini indicano i bit che saranno 1 in lettura.*
+
+Le ROM funzionano praticamente come una tabella della verità: ogni bitline rappresenta una funzione
+![ROM che funziona come tabella della verità](./images/rom-tabella-verità.png)
+
+Ovviamente questo ragionamento funziona per qualsiasi tipo di memoria.
+
+Le LUT che abbiamo visto precedentemente sono realizzate esattamente in questo modo.
