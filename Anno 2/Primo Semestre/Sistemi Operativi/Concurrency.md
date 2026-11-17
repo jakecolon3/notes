@@ -464,3 +464,50 @@ This could cause another issue though: 2 threads could both try to get the locks
 ### Lock ordering
 
 To break the fourth condition, we can enforce an order in which the threads must acquire the locks. This is what making the last philosopher get the forks in the opposite order does.
+
+## Banker's Algorithm
+
+Coffman conditions could never actually manifest in a program, so trying to avoid them could be a waste of time.
+
+Another way to avoid deadlocks is to guarantee that the program remains in a *safe state*: every time a thread requests a resource, we simulate what the state of the program would be if the resource was granted, and accept requests only when doing so moves the program to another safe state.
+
+A state is *safe* when there is a possible thread ordering with which each thread gets resources it wants and can finish its work.
+
+Consider this state, with 12 units of a resource $R$:
+
+| Thread | Allocated | Max       | Need      |
+| ------ | --------- | --------- | --------- |
+|   A    |     5     |     10    |     5     |
+|   B    |     2     |     4     |     2     |
+|   C    |     2     |     9     |     7     |
+
+Each thread terminates when it gets the max amount of resources, releasing the resources it was holding.
+
+Right now there are 3 free units of $R$. This state is safe, since there's a valid ordering: $C\to B\to A$ or $C\to A\to B$.
+
+This only works if we assume that each thread will tell us how many resources it will need in advance.
+
+So, to tell if a state is safe:
+1. Find a thread whose request can be fulfilled with the currently available resources
+2. Grant the thread the requested resources; its previously allocated resources are returned
+3. Repeat until all requests have been granted
+
+If step 1. fails at any iteration, the state is not safe. Otherwise, we found a valid sequence and so the state is safe. This is known as the *Banker's Algorithm*.
+
+This algorithm is used to determine wheter or not to grant a thread's request for resources:
+![Request algorithm](./images/bankers-request-algorithm.png)
+*The last 2 steps are where the algorithm is applied: first you calculate the state the program would be in if the request was granted, then you run the algorithm on that hypothetical state. If the hypothetical state is safe, you actually grant the request.*
+
+## Recovering from deadlocks
+
+Another approach would be to just let deadlocks happen, and recover from them when they do.
+
+When a request blocks for too long, you could create the resource allocation graph and visit it to look for a cycle. If a cycle is found, you can choose how to handle the deadlock (terminate offending threads, deallocate resources...)
+
+## Ignore the deadlocks lmao
+
+In real systems, deadlocks are just ignored because of their rarity.
+
+Deadlocks are only a problem in user-space code, since kernel code is checked extensively for bugs.
+
+The cost of detecting them would outweigh the impact of the actual deadlocks.
