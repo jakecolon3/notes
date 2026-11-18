@@ -25,7 +25,7 @@ puoi anche dimostrare per induzione credo? l'idea è che l'insieme di elementi s
 
 guarda p.3 [slide](http://wwwusers.di.uniroma1.it/~wollan/Prog_Alg/Appunti/greedy.pdf)
 
----
+# Minimum Spanning Tree
 
 Dato un grafo $G$ non diretto con pesi $w: E(G) \to R^+$ vogliamo trovare un sottografo connesso che:
 - contiene tutti i vertici
@@ -42,11 +42,11 @@ Cerchiamo di formulare un algoritmo greedy per risolvere questo problema.
 Un'idea è ordinare gli archi per peso e, ad ogni passo, scegliere l'arco minimo che connette due vertici non ancora connessi:
 ```
 def kruskal(g: Grafo):
-    # ordina gli archi per peso
+    ordina gli archi per peso
     sol = {}
     for i in range(n):
         if sol union g.e[i] non contiene cicli:
-            sol.add(e[i])
+            sol.add(g.e[i])
     return sol
 ```
 
@@ -63,3 +63,44 @@ def prim(g: Grafo, v: Vertice):
 ```
 
 L'algoritmo di Kruskal crea sempre un albero come output. Dimostrato dal fatto che l'output non contiene mai cicli (non aggiungiamo mai l'arco che crea un ciclo). È sempre connesso perché se non lo fosse allora l'algoritmo avrebbe mancato un arco che connette due nodi componenti e non crea un ciclo.
+
+Dimostrazione di correttezza di Kruskal:  
+Sia $Sol_i$ il valore di $Sol$ dopo l'$i$-esimo passo del `for`. Proposizione ($*$): $\forall i\in 0,...,n\ \exists$ una soluzione ottimale $Sol^*$ con $Sol_i\leq Sol^*$.
+
+Osservazione: $*\Rightarrow Sol_m$ è una soluzione ottimale. Dimostrazione: per $*$, esiste una soluzione ottimale $Sol^*$ che contiene $Sol_m$. ?? $Sol_m$ e $Sol^*$ sono alberi di copertura $\Rightarrow |Sol_m|=n-1, |Sol^*|=n-1\Rightarrow Sol_m=Sol^*$. Per induzione:
+- Caso base: $$
+Sol_0=\emptyset \Rightarrow Sol_0\subseteq Sol^* \text{ per qualsiasi soluzione ottimale } Sol^*.
+$$
+- Assumiamo che esiste un $Sol^*$ ottimale che contiene $Sol_i$: $$
+Sol_{i+1} = \begin{cases} Sol_i \\ Sol_i \cup \{e_{i+1}\}. \end{cases}\\
+\text{Se } Sol_{i+1}= Sol_i \text{ è già }\subseteq Sol^*. \\
+\text{Se } e_{i+1}\in Sol^*\Rightarrow Sol_{i+1}\text{ è già }\subseteq Sol^*.
+$$  
+    Se il nuovo elemento non fa parte di $Sol^*$ significa che l'algoritmo ha aggiunto un'arco che ha creato un ciclo perché esiste un cammino in $Sol^*$ che collega i due vertici dell'arco e il cammino + l'arco è un ciclo (????) boh mi sono perso ([slide](http://wwwusers.di.uniroma1.it/~wollan/Prog_Alg/Appunti/greedy3.pdf))
+
+---
+
+```
+def prim(g: Grafo, v: Vertice):
+    sol = {}
+    r = {v}
+    while r != g.vertici:
+        uv = arco con peso minimo t.c. u in r, v not in r
+        sol.add(uv)
+        r.add(v)
+    return sol
+```
+
+Dimostrazione correttezza di Prim:  
+L'output è un'albero perché partiamo da un grafo connesso (singolo nodo) e ad ogni passo aggiungiamo un nodo connesso al grafo, quindi rimane connesso; non ha cicli perché ad ogni passo aggiungiamo un nodo che non è già nel grafo.
+
+Dimostriamo che l'albero è minimo. Sia $Sol_i$ la soluzione dopo l'$i$-esima iterazione del `while`. Si ha che $Sol_0=\emptyset$.  
+Proposizione ($*$): per ogni $i\in 0,...,n$, esiste una soluzione ottimale $Sol^*$ che contiene $Sol_i$.  
+Dimostriamo $*$ per induzione.
+- Caso base: $Sol^*\subseteq \emptyset$.
+- Ipotesi induttiva: $Sol_i\subseteq Sol^*$.
+    Aggiungiamo un arco ad ogni passo quindi $Sol_i \not= Sol_{i+1}$. Se il nuovo arco $e_{i+1}\in Sol^*\Rightarrow Sol_{i+1}\subseteq Sol^*$ e abbiamo fatto. Altrimenti $uv = e_{i+1}\not\in Sol^*$. Dato che $Sol^*$ è già un albero, $Sol^*\cup \{uv\}$ ha un ciclo $C$. $C$ ha un percorso da $v\to u$ che non passa per $uv$. Sia $f$ l'arco lungo il percorso con un termine in $R$ ed uno fuori. Il peso di $f$ è maggiore o uguale del peso di $uv$ dato che abbiamo scelto $uv$ come l'arco di peso minimo uscente da $R\Rightarrow$ il peso di $(Sol^*-f)\cup \{uv\}$ è minore o uguale al peso di $Sol^*\Rightarrow Sol^{**}=(Sol^*-f)\cup\{uv\}$ è una soluzione ottimale che contiene $Sol_{i+1}$. È quindi possibile estendere $Sol_{i+1}$ ad una soluzione ottimale CVD.
+
+---
+
+
