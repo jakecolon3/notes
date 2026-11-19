@@ -260,6 +260,39 @@ Inoltre, le dipendenze che causano la violazione della 3NF sono proprio le relaz
 > [!NOTE]
 > C'è una definizione equivalente di 3NF che fa uso delle dipendenze *transitive* (dipendenze che permettono l'applicazione dell'assioma di transitività (quella a destra: con $A\to B, B\to C$ la transitiva è $B\to C$)) e *parziali* (dipendenze in cui il determinato dipende da un sottoinsieme di una chiave): se uno schema non contiene dipendenze transitive o parziali è in 3NF.
 
+### Dipendenze parziali e transitive
+
+Siano $R$ uno schema, $F$ un insieme di dipendenze funzionali su $R$.
+
+> $X\to A\in F^+| A\not\in X$ è una *dipendenza parziale* su $R$ se $A$ non è primo ed $X$ è contenuto propriamente in una chiave di $R$.
+
+> $X\to A\in F^+| A\not\in X$ è una *dipendenza transitiva* su $R$ se $A$ non è primo e per ogni chiave $K$ di $R$ si ha che $X$ non è contenuto propriamente in $K$ e $K-X\not=\emptyset$.
+
 ---
 
 Abbiamo scoperto come capire se uno schema buono. Dobbiamo però ancora capire come decomporlo in schemi che rispettano la 3NF.
+
+## Decomposizione
+
+Un dato schema può essere decomposto in più modi in un'insieme di schemi 3NF, ma non tutti questi insiemi ci vanno bene. Infatti alcune decomposizioni potrebbero *perdere* alcune dipendenze che erano in $F^+$. Una buona decomposizione mantiene tutte le dipendenze di $F^+$.
+
+Esempio: $R=(\text{Matricola, Comune, Provincia}),F=\{\text{Matricola}\to\text{Comune},\text{Comune}\to\text{Provincia}\}$
+![Decomposizione scorretta](./images/decomposizione-invalida.png)
+
+Ma non basta neanche presevare le dipendenze di $F^+$: non è detto che sarà possibile ricostruire lo schema originale partendo dalla decomposizione (*perdita di informazione*).
+
+Esempio: $R=(\text{Matricola}, \text{Progetto}, \text{Capo}), F=\{\text{Matricola}\to \text{Progetto}, \text{Capo}\to \text{Progetto}\}$
+![Decomposizione ancora scorretta](./images/decomposizione-invalida-2.png)
+![](./images/decomposizione-invalida-3.png)
+
+Quindi una buona decomposizione:
+- Preserva le dipendenze funzionali ($F^+$) dello schema originario
+- Permette di ricostruire tramite join naturale ogni istanza legale dello schema originario
+
+### Forma normale di Boyce-Codd
+
+> Una relazione è in forma normale di Boyce-Codd (BCNF) quando in essa *ogni determinante di $F^+$ è una superchiave*. Ogni relazione in BCNF è in 3NF, ma non è vero l'opposto
+
+Uno schema in 3NF ma non in BCNF può causare ridondanze che rendono l'aggiornamento difficile.
+
+Per portare uno schema in 3NF alla BCNF si può decomporre, utilizzando come chiavi dei nuovi schemi i determinanti delle dipendenze funzionali che non rispettavano la BCNF. Purtroppo però questo non è sempre possibile.
