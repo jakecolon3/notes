@@ -266,7 +266,7 @@ Siano $R$ uno schema, $F$ un insieme di dipendenze funzionali su $R$.
 
 > $X\to A\in F^+| A\not\in X$ è una *dipendenza parziale* su $R$ se $A$ non è primo ed $X$ è contenuto propriamente in una chiave di $R$.
 
-> $X\to A\in F^+| A\not\in X$ è una *dipendenza transitiva* su $R$ se $A$ non è primo e per ogni chiave $K$ di $R$ si ha che $X$ non è contenuto propriamente in $K$ e $K-X\not=\emptyset$.
+> $X\to A\in F^+| A\not\in X$ è una *dipendenza transitiva* su $R$ se $A$ non è primo e per ogni chiave $K$ di $R$ si ha che $X$ non è contenuto propriamente in $K$ o $K-X\not=\emptyset$ ($X$ si interseca solo parzialmente con $K$).
 
 ---
 
@@ -296,3 +296,35 @@ Quindi una buona decomposizione:
 Uno schema in 3NF ma non in BCNF può causare ridondanze che rendono l'aggiornamento difficile.
 
 Per portare uno schema in 3NF alla BCNF si può decomporre, utilizzando come chiavi dei nuovi schemi i determinanti delle dipendenze funzionali che non rispettavano la BCNF. Purtroppo però questo non è sempre possibile.
+
+# Normalizzazione
+
+Decomporre uno schema correttamente porta ad uno schema in 3NF. Vediamo quindi come normalizzare uno schema e come controllare se abbiamo fatto una buona normalizzazione.
+
+A grandi linee, per decomporre uno schema non in 3NF in sottoschemi 3NF:
+- Crea una relazione per ogni gruppo di attributi coinvolti in una dipendenza funzionale di un insieme equivalente a $F$, calcolato come *copertura minimale* di $F$.
+- Verifica che almeno una delle relazioni contenga una chiave della relazione originaria e che rispetti tutte le dipendenze funzionali originarie. Se non è così, aggiungi una relazione che contiene una chiave.
+
+(ricorda il lemma di chiusura)
+
+## Insiemi di dipendenze equivalenti
+
+> Siano $F$ e $G$ due insiemi di dipendenze funzionali. $F\equiv G$ (sono *equivalenti*) se $F^+=G^+$.
+
+Questi insiemi quindi, anche contenendo dipendenze funzionali diverse, determinano *lo stesso insieme di vincoli*.
+
+Per dimostrare l'equivalenza dovremmo calcolare le chiusure, che però richiede tempo esponenziale. C'è però un lemma che permette di verificare l'equivalenza in tempo polinomiale:
+
+> Siano $F, G$ insiemi di dipendenze funzionali. Allora: $$
+F\subseteq G^+ \iff F^+\subseteq G^+.
+$$
+
+Dimostrazione:  
+- $F^+\subseteq G^+ \to F\subseteq G^+$ è banale: $F\subseteq F^+\to F\subseteq G^+$.
+- $F\subseteq G^+\to F^+\subseteq G^+$
+    Dato che $F\subseteq G^+$, $F$ è ottenibile applicando teoremi di Armstrong a $G$. $F^+$ è poi ottenibile applicando teoremi di Armstrong a $F$. Dato che la definizione di chiusura è le dipendenze funzionali ottenibili tramite applicazione dei teoremi di Armstrong, e si ha che $F^+$ è ottenibile applicando teoremi di Armstrong a $G$, si ha che $F^+\subseteq G^+$, CVD.
+
+Da questo lemma segue: $$
+F\equiv G\to G\equiv F\to F^+=G^+\to F^+\subseteq G^+\land G^+\subseteq F^+\to F\subseteq G^+\land G\subseteq F^+.
+$$
+Che possiamo verificare in tempo polinomiale.
