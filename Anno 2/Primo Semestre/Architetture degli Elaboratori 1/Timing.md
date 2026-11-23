@@ -59,3 +59,30 @@ Nel calcolo, è come se un clock sia arrivato prima, quindi questo tempo va aggi
 
 > [!NOTE]
 > Lo skew potrebbe essere negativo (dato che è una differenza) e quindi potrebbe aumentare la frequenza di clock.
+
+# Parallelismo
+
+Per velocizzare i calcoli, si può *parallelizzare*.
+
+Ci sono 2 tipi di parallelismo:
+- Parallelismo spaziale
+    Duplica l'hardware per fare più calcoli contemporaneamente
+- Parallelismo temporale
+    Pipelining
+
+Definizioni di alcuni termini:
+- Token
+    Gruppo di input che vengono processati ad un gruppo di output
+- Latenza
+    Tempo che un token impiega per essere processato
+- Throughput
+    Numero di token processati per unità di tempo
+
+Il parallelismo aumenta il throughput.
+
+Il parallelismo temporale aumenta la latenza. Il throughput con parallelismo temporale è limitato dallo stage con throughput minimo.
+
+In un sistema digitale, il parallelismo si ottiene spezzando la logica combinatoria con dei flip-flop:
+![Circuito sequenziale parallelo](./images/parallelismo-circuito-sequenziale.png)
+
+In un circuito sequenziale, il parallelismo temporale è limitato dal timing dei flip-flop: possiamo dividere la parte di logica combinatoria, ma il tempo dei flip-flop è fisso.
