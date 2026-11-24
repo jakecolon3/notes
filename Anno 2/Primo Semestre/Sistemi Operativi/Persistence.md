@@ -149,3 +149,150 @@ We use head track movement as a measure.
 Real systems usually use a variant of LOOK/C-LOOK, since it offers even waits with good average travel time.
 
 We only consider track travel time since that's what the OS knows. The device itself has more information, and so will reorder requests sent by the operating system to optimize further.
+
+# Solid State Drives
+
+Solid state drives work more like RAM than a hard disk: access times aren't dependant on the internal physics of the device; randomized access is always the same speed.
+
+SSDs can't overwrite: they must delete and write in 2 separate steps. Because of this, overwriting is always done by writing to a new location, then deleting the old one later. Since randomized access is not slower, this doesn't cause any overhead.
+
+## Layout
+
+An SSD contains a controller, DRAM, and several *NAND chips*. Each NAND chip contains several *dies*, which work in parallel. Each die contains 2-4 *planes*. Each plane has ~thousands of *blocks*. Each block has ~256 *pages*, which are rows of *cells*.
+
+The minimum deletion unit is the block. The minimum read/write unit is the page.
+
+Cells work by maintaining a certain level of voltage, based on the cell's size in bits, which encodes which bits are active.
+
+![Bits per cell](./images/bits-per-ssd-cell.png)
+
+## Using flash memory
+
+Reading a page costs \~25-100 us. Writing ("programming") an (erased) page costs \~200-900 us. Erasing a block costs \~2-5 ms.
+
+Programming a page can only change bits from 1 to 0. Erasing sets all bits back to 1.
+
+A naive way to overwrite a page is to copy the whole block into RAM, erase the block, then write back all the pages with the one targeted page modified. Obviously, this is very wasteful. The better approach is to write the modified page in a *new* location, and reading from that new location instead of the old one.
+
+### Wear
+
+Flash memory is not perfect:
+- Erasing and programming slightly damages the SSD
+- Data fades over time if left static
+- Reading a page slightly affects its neighbors
+
+The biggest damage is done by erasing. The SSD's controller optimizes operations to reduce the number of erases, increasing lifetime.
+
+## Flash translation layer
+
+The operating system needs a unified interface for interacting with I/O devices, it doesn't care about optimizing flash memory lifetime. It's the firmware that abstracts away the details of managing flash memory.
+
+The *flash translation layer* is part of the SSD's firmware, and it sits between the physical NAND chips and the operating system to provide the interface the OS needs.
+
+### Address mapping
+
+The FLT must do some address mapping to keep track of where overwritten pages actually are.
+
+In the SSD's DRAM lives a table that maps logical addresses to the physical pages inside the NAND chips. Once a page is overwritten, the table is updated to point to the new physical page, and the old one is marked as *stale*.
+
+Though, if we wanted to map each page, we'd need a very large amount of RAM: with 4kB pages and 4B/page, we'd need around 1 MB per GB of storage. Mapping blocks doesn't work since then the minimum operable unit becomes a block (256 pages). There's a hybrid approach?
+
+### Garbage collector
+
+Stale pages are cleaned up periodically by the *garbage collector*.
+
+The garbage collector's logic is:
+1. Pick victim blocks
+    Find blocks with a lot of stale pages; minimizes copying valid pages
+2. Copie still valid pages to free blocks
+3. Update the mapping table
+4. Erase the victim(s)
+
+Garbage collection runs when the drive is idle, but must be run forcefully under heavy write loads.
+
+This process causes *write amplification*: each write by the host actually costs more than 1 write, scaling with the number of valid pages in the victim block.
+
+With $n=$ pages in a block, $v=$ valid pages, the formula for write amplificaton is (lower = better): $$
+\text{WAF}=\frac{\text{total writes}}{\text{requested writes}} = \frac{n}{n-v};\text{ or } \frac 1{1-u} \text{ with } u=\frac vn \text{ being the fraction of valid pages}
+$$
+
+#### Over-provisioning
+
+Drives often have more storage than they report to the operating system, known as *over-provisioning*.
+
+Over-provisioning reduces WAF, since if every block is full most blocks will have very few invalid pages. With more spare blocks, they need to be erased less often, leading to more invalid pages and thus lower WAF.
+
+### Wear leveling
+
+It's advantageous to have blocks age at roughly the same rate, since one dead block can ruin the drive. This is known as *wear leveling*, and it can be implemented in 2 ways:
+- Dynamic wear leveling
+    Prioritize writing the least-aged free block
+- Static wear leveling
+    Periodically move cold data to young blocks
+
+The FTL also manages dead blocks by replacing them with spare blocks from the over-provisioned area.
+
+---
+
+Full walkthrough of a memory access:
+1. OS sends `write(LBA 1000)`
+2. FTL picks an erased page and programs it
+3. Map entry of `LBA 1000` points to the new page
+4. Old page is marked stale
+5. At some point the GC picks the block with the least valid pages, copies them and erases the block
+
+The erase uses one program/erase cycle. New writes are sent to the least worn blocks, and over-provisioning increases the chance that there are enough free blocks.
+
+## IOPS
+
+Another metric for device performance is *I/O operations per second* (IOPS). SSD NAND chips work in parallel, which increases the number of requests it can handle per second.
+
+$$
+\text{IOPS} = \frac{\text{max queued requests}}{\text{drive latency}}
+$$
+
+The max queued requests is determined by the max level of parallelization the device can handle.
+
+## Lifespan
+
+A drive's lifespan is proportional to the number of P/E (program/erase) cycles its flash can handle and inversly proportional to write amplification: $$ \text{TBW (terabytes written)} = \frac{\text{capacity (TB)}\times \text{P/E cycles}}{\text{WAF}} $$
+
+### Tricks
+
+File deletions are entirely handled by the filesytem, the drive sees no change. `TRIM` is a message that the OS can send to the drive to forcefully mark them as stale. This increases the number of invalid pages, lowering WAF.
+
+On Linux, this is sent periodically, or on every deletion if the drive is mounted with a specific option.
+
+---
+
+The drive's cache is volatile, so it could say it's done with a write before the data has been made persistent. *Flushing* makes sure the data is actually written before the drive answers.
+
+# Linux I/O schedulers
+
+Shortest-time-to-complete-eqsue scheduling could starve requests. Real schedulers use *deadlines* to avoid starvation.
+
+Every request gets a time limit. If a request's limit is about to exipre, it is served next, regardless of time-to-complete.
+
+Reads get quick deadlines, since processes will be waiting on them. Writes can afford to get long deadlines, since the data can sit in memory for a bit.
+
+## `mq-deadline`
+
+This scheduler is what Linux uses for HDDs.
+
+New requests are sent to 2 queues, one sorted by LBA and one FIFO queue with deadlines. Normally, the scheduler picks the next request from the sorted queue, but if a request in the FIFO queue has passed its deadline it is served first.
+
+## `none`
+
+Only merges adjacent requests. Used for NVMe SSDs.
+
+## `bfq`
+
+*Budget fair queueing*, optimizes firness/latency.
+
+## `kyber`
+
+Tries to meet a latency target.
+
+---
+
+The scheduler sends requests to the device drives, which can also queue and reorder requests based on the current drive geometry.

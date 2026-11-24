@@ -100,7 +100,3 @@ Dimostriamo $*$ per induzione.
 - Caso base: $Sol^*\subseteq \emptyset$.
 - Ipotesi induttiva: $Sol_i\subseteq Sol^*$.
     Aggiungiamo un arco ad ogni passo quindi $Sol_i \not= Sol_{i+1}$. Se il nuovo arco $e_{i+1}\in Sol^*\Rightarrow Sol_{i+1}\subseteq Sol^*$ e abbiamo fatto. Altrimenti $uv = e_{i+1}\not\in Sol^*$. Dato che $Sol^*$ è già un albero, $Sol^*\cup \{uv\}$ ha un ciclo $C$. $C$ ha un percorso da $v\to u$ che non passa per $uv$. Sia $f$ l'arco lungo il percorso con un termine in $R$ ed uno fuori. Il peso di $f$ è maggiore o uguale del peso di $uv$ dato che abbiamo scelto $uv$ come l'arco di peso minimo uscente da $R\Rightarrow$ il peso di $(Sol^*-f)\cup \{uv\}$ è minore o uguale al peso di $Sol^*\Rightarrow Sol^{**}=(Sol^*-f)\cup\{uv\}$ è una soluzione ottimale che contiene $Sol_{i+1}$. È quindi possibile estendere $Sol_{i+1}$ ad una soluzione ottimale CVD.
-
----
-
-
