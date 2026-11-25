@@ -1,4 +1,4 @@
-	A computer that cannot save information across reboots is not very useful, so we need *persistence*.
+A computer that cannot save information across reboots is not very useful, so we need *persistence*.
 
 But, how does the OS communicate with I/O devices without wasting CPU time while blocking?
 
@@ -295,4 +295,107 @@ Tries to meet a latency target.
 
 ---
 
-The scheduler sends requests to the device drives, which can also queue and reorder requests based on the current drive geometry.
+> [!NOTE]
+> The scheduler sends requests to the device driver, which can also queue and reorder requests based on the current drive geometry (if hdd).
+
+# The filesystem
+
+User programs don't interact directly with I/O devices, they use the *filesystem*, an abstraction provided by the OS.
+
+## Files and directories
+
+The fundamental abstraction of the filesystem is the file.
+
+Storage devices just offer an array of blocks, but that would be inconvenient for individual programs to keep track of. So the filesystem offers named groups of blocks (files), handling all bookkeeping itself.
+
+> A *file* is a named, variable-length, persistent sequence of indexable bytes.
+
+Files have a name that is used by programs, but they also have an *inode number*, used by the filesystem. An inode, or index node, is a record that describes the file and its properties. The inode is unique for each file in the filesystem.
+
+> A *directory* is a special file that contains mappings of its contents' filenames to their inode numbers.
+
+Every directory contains itself, `.`, and its parent, `..`.
+
+Files have *paths*, which are walks from a directory to the file itself: when the OS sees `/home/me/my_file.txt` it has to walk from the root directory to `home`, then `me`, and finally `my_file.txt`. A path that doesn't start with `/` is a relative path, meaning it starts at process' the current working directory.
+
+
+## Opening files
+
+The C API for *opening* a file is:
+```c
+#include <fcntl.h>
+int open(const char *pathname, int flags, mode_t mode);
+```
+
+When called, this system call:
+1. Resolves the pathname
+2. Checks permissions
+3. Creates an *open file entry* in the kernel's *open file table* with some data about the file
+4. Returns a file descriptor, a *handle* to the entry in the open file table
+
+The possible flags are:
+![Flags for `open`](./images/open-syscall-flags.png)
+
+Each process has a unique *file descriptor table*, containing all its open files. The first 3 file descriptors are conventionally assigned to stdin, stdout, and stderr respectively. Calls to open will return the first unoccupied integer in the file descriptor table.
+
+Entries in the FD table contain a reference to the kernel's open file table, which itself contains a pointer to the file's inode.
+
+The open file entry also contains the current byte offset inside the file, advanced by `read` and `write` calls, the number of references to the file, and the flags.
+
+Processes can open the same file multiple times. This will return a *different* file descriptor for each call, and will create multiple entries in the open file table for the same file.
+
+These table entries take up memory, so once done using a file it should be *closed* with the `close(fd)` syscall. `close()` decreases the file's reference count in the open file table by 1; its open file table entry will then be freed once the reference count reaches 0.
+
+## Interacting with files
+
+The C API for reading a file is:
+```c
+#include <unistd.h>
+ssize_t read(int fd, void *buf, size_t count);
+```
+
+This call will read `count` bytes from `fd`, starting at its offset, into `buf`, returning the number of bytes read or -1 if an error occurred.
+
+It returns the number of bytes read since the cursor could reach the end of the file before having read the requested bytes.
+
+The C API for writing a file is:
+```c
+#include <unistd.h>
+ssize_t write(int fd, void *buf, size_t count);
+```
+
+This call will copy `count` bytes from `buf` into the file at its current offset (unless the file was opened with `O_APPEND`; in that case writes will always move the cursor to the end first), returning the number of bytes written, which can be smaller than `count`. It is good practice to handle that case.
+
+To move the offset in a file without reading or writing:
+```c
+off_t lseek(int fd, off_t delta, int whence);
+```
+
+This will move the cursor by `delta` bytes relative to `whence`, returning the new offset. The `SEEK_END` and `SEEK_CUR` macros return the last byte and current offset, respectively
+
+### The page cache
+
+`write` doesn't actually write data to disk immediately. It first writes to the *page cache*, a pool of frames in kernel memory used for file data. The kernel keeps a per-file table mapping the files' page numbers to the cached frames, checking that first before interacting with the storage device.
+
+When a cache page is written, it is marked as *dirty*. The kernel then periodically flushes the page cache, writing all dirty pages to disk.
+
+`reads` also check the cache first. On a miss, it reads the file's data into the cache.
+
+If a program wants to make sure that written data was actually written to disk, it can use `fsync(fd)` or the `O_SYNC` flag when opening the file.
+
+## Sharing open files
+
+When a process calls `fork()`, its FD table is also copied, increasing each FD's reference count in the corresponding open file entries.
+
+Shared FDs also mean shared offsets (modified atomically by the kernel).
+
+A process can also manually create multiple references to the same open file entry:
+```c
+int dup(int oldfd);
+int dup2(int oldfd, int newfd);
+```
+
+`dup` takes a file descriptor, creates a new FD pointing to *the same* open file entry as it, and returns the newly created FD. `dup2` makes `newfd` point at what `oldfd` is pointing at.
+
+> [!NOTE]
+> `exec()` keeps the previous FD table; this is how shell redirection can be implemented.
