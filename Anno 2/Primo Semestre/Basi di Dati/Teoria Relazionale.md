@@ -325,6 +325,44 @@ Dimostrazione:
     Dato che $F\subseteq G^+$, $F$ è ottenibile applicando teoremi di Armstrong a $G$. $F^+$ è poi ottenibile applicando teoremi di Armstrong a $F$. Dato che la definizione di chiusura è le dipendenze funzionali ottenibili tramite applicazione dei teoremi di Armstrong, e si ha che $F^+$ è ottenibile applicando teoremi di Armstrong a $G$, si ha che $F^+\subseteq G^+$, CVD.
 
 Da questo lemma segue: $$
-F\equiv G\to G\equiv F\to F^+=G^+\to F^+\subseteq G^+\land G^+\subseteq F^+\to F\subseteq G^+\land G\subseteq F^+.
+F\equiv G\to F^+=G^+\to F^+\subseteq G^+\land G^+\subseteq F^+\to F\subseteq G^+\land G\subseteq F^+.
 $$
 Che possiamo verificare in tempo polinomiale.
+
+# Decomposizione
+
+> Sia $R$ uno schema. Una *decomposizione* di $R$ è una famiglia di sottoinsiemi del tipo: $$
+\rho = \{R_1,R_2,...,R_k\}, R_i\subseteq R \text{ t.c. } \bigcup_{i=1}^k R_i = R.
+$$
+
+> Sia $R$ uno schema, $F$ insieme di dipendenze funzionali su $R$, e $\rho$ una decomposizione. $\rho$ *preserva* $F$ se $F \equiv G$. Per definire $G$ definiamo prima: $$
+R_i\subseteq R,\ \pi_{R_i}(F) = \{X\to Y\in F^+|XY\subseteq R_i\}.
+$$ $G$ quindi è: $$
+G = \bigcup_{i=1}^k \pi_{R_i}(F).
+$$
+
+Quindi per verificare se una decomposizione preserva $F$ dobbiamo verificare $F\equiv G$. Però abbiamo definito $pi_{R_i}$ usando $F^+$, quindi non possiamo calcolarlo in modo efficiente.
+
+Possiamo però usare il lemma visto sopra: $G^+\subseteq F^+ \iff G\subseteq F^+$. $G\subseteq F^+$ è sempre vero per come è costruito $G$. Dobbiamo verificare $F\subseteq G^+$ per soddisfarre la definizione di equivalenza: $F^+ = G^+$. Per il lemma di chiusura, si ha che $X\to Y\in G^+\iff Y\subseteq X^+_G$. In questo modo possiamo controllare se ogni $X\to Y\in F$ appartiene a $G^+$ calcolando la chiusura di $X$ rispetto a $G^+$. Se vero, abbiamo dimostrato $F^+=G^+$.
+
+Però l'algoritmo per il calcolo della chiusura di un insieme di attributi che abbiamo visto richiede che l'insieme rispetto a cui stiamo calcolando la chiusura sia noto, che in questo caso non lo è:
+```
+Z := X;
+S := {A | Y -> V in F and A in D and Y subset Z};
+while not S subset Z
+    Z := Z union S;
+    S := {A | Y -> V in F and A in V and Y subset Z};
+return Z;
+```
+
+Algoritmo per calcolare $X_G^+$ partendo da $F$: $$
+\begin{align}
+&\text{chiusura}(R, F, \rho, X\subseteq R): \\
+&\ \ \ \ Z := X \\
+&\ \ \ \ S := \bigcup_{i=1}^k[(Z\cap \rho[i])_F^+\cap \rho[i]] \\
+&\ \ \ \ \text{while } S\not\subseteq Z: \\
+&\ \ \ \ \ \ \ \ Z=Z\cup S \\
+&\ \ \ \ \ \ \ \ S=\bigcup_{i=1}^k[(Z\cap \rho[i])_F^+\cap \rho[i]] \\
+&\ \ \ \ \text{return } Z
+\end{align}
+$$
