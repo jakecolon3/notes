@@ -399,3 +399,81 @@ int dup2(int oldfd, int newfd);
 
 > [!NOTE]
 > `exec()` keeps the previous FD table; this is how shell redirection can be implemented.
+
+# Filesystem implementation
+
+Let's assume we have a 1MB drive made up of 256 4kB blocks, each divided in 256B sectors. We'll see how a filesystem could be implemented on such a disk, making note of how much space is left after the filesystem creates its data structures.
+
+![Our assumed disk](./images/toy-filesystem-disk.png)
+*Values for our presumed disk*.
+
+## Data structures
+
+The filesystem must keep 4 kinds of information:
+1. File data
+    Files' actual bytes (including directories); *data region*
+2. File metadata
+    Size, owner, permissions; *inode table*
+3. Free space record
+    Keeps track of what blocks and inodes are in use; *inode bitmap* and *data bitmap*
+4. Filesystem parameters
+    Allocated size, region start offsets; *superblock*
+
+On our disk, the filesystem's metadata takes up a total of 7 blocks: 1 (the minimum) for the superblock, inode bitmap, and data bitmap, and 4 for the inode table. The rest is free for files and directories.
+
+### Inode table
+
+Contigous array of inode slots (64 in our case). Slot 0 is reserved as invalid, slot 1 is reserved for bad blocks, slot 2 is the root directory.
+
+### Bitmaps
+
+The inode and data bitmaps are arrays of singular bits. Each bit is 1 if the object is allocated, 0 otherwise. In the inode bitmap, bit $n$ refers to inode $n$. In the data bitmap, bit $n$ refers to block $n + 7$ (offsets by the size of the metadata).
+
+### Superblocks
+
+The superblock is the first block read by the kernel when mounting the filesystem.
+
+![Superblock fields](./images/superblock-fields.png)
+*Information in the superblock*.
+
+### Block groups
+
+The layout we saw is actually repeated in groups called *block groups* in ext filesystems. This is done so that files' data sits near their metadata, allowing for faster access on HDDs.
+
+This requires another "super-superblock" to keep track of the groups.
+
+### Inodes
+
+Entries in the inode table hold some attributes:
+- File type
+- File size
+- Owner and group information
+- Permissions
+- Last access time
+- Last modification time
+- Last inode change
+- Hard links
+
+And *block pointers*, which hold pointers to the disk blocks that hold the file's data, or to blocks which themselves contain references to blocks (up to 3? levels of indirection). Having indirect block pointers allows keeping the inode table entry size fixed while not limiting file size.
+
+![Inode table entry](./images/inode-table-entry.png)
+
+So, starting from inode number $i$, to get that file's data we have to first figure out where in the inode table that entry is, since it's spread across different blocks. The formula for finding the block is: $\text{inode table block offset (3)} + i \div \text{inodes per block (16) (floored)}$. The byte offset for the entry will then be: $i \mod \text{inodes per block (16)} * 256$.
+
+#### Extents
+
+Memorizing lots of pointer blocks could get expensive for large files. *Extents* alleviate this on contigous files: they store contigous blocks as (first logical blocks, length, first physical block). Extents are also stored inside the inode table entry.
+
+### Directories
+
+A directory is stored as an inode, just like other files. The difference is that in its data blocks it keeps a list of records describing other files.
+
+Each record has these fields:
+- Inode number of the file
+- Length of the record
+    Will stretch to the end of the block for the last entry
+- Length of the record's name
+- File type
+- Name (will be as long as specified earlier)
+
+
